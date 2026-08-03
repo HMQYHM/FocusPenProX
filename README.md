@@ -10,7 +10,7 @@ Gesture enhancement module for Xiaomi Focus Pen Pro
 
 ## 简体中文
 
-FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LSPosed 模块。它把小米虚拟激光能力扩展为可配置的手写笔鼠标和手势动作，同时坚持“不修改系统文件、禁用或卸载即恢复”的设计。
+FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LSPosed 模块。它把小米虚拟激光能力扩展为可配置的手写笔鼠标和手势动作。
 
 ### 功能
 
@@ -28,20 +28,19 @@ FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LS
 
 ### 已验证环境
 
-- 设备代号：`piano`
+- 设备：小米 Pad 8 Pro
 - 型号标识：`25091RP04C`
 - Android：16 / API 36
 - HyperOS：`OS3.0.307.0.WPYCNXM`
 - 架构：`arm64-v8a`
 - 触控笔：小米焦点触控笔 Pro（VID/PID `0022:5081`）
-- LSPosed 作用域：`android`（系统框架）
 
 其他设备、ROM 或 HyperOS 大版本尚未验证。能力签名不匹配时，模块会拒绝安装高风险输入 Hook 并保持系统原行为。
 
 ### 安装
 
 1. 从 [Releases](https://github.com/HMQYHM/FocusPenProX/releases) 下载 APK。
-2. 安装 APK，在 LSPosed 中启用模块并保留推荐的 `android` 作用域。
+2. 安装 APK，并在 LSPosed 中启用模块。
 3. 重启设备。
 4. 打开 FocusPen Pro X，先加入一个普通应用到白名单，再开启总开关测试。
 5. 建议把笔记、绘画和游戏应用加入黑名单，完整保留原版输入行为。
@@ -110,12 +109,12 @@ FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus P
 
 ### Compatibility
 
-Currently verified only on `piano` / `25091RP04C`, Android 16, HyperOS `OS3.0.307.0.WPYCNXM`, arm64-v8a, and Xiaomi Focus Pen Pro. Other devices and ROM versions are untested.
+Currently verified only on Xiaomi Pad 8 Pro (`25091RP04C`), Android 16, HyperOS `OS3.0.307.0.WPYCNXM`, arm64-v8a, and Xiaomi Focus Pen Pro. Other devices and ROM versions are untested.
 
 ### Installation
 
 1. Download the APK from [Releases](https://github.com/HMQYHM/FocusPenProX/releases).
-2. Install it, enable the module in LSPosed, and keep the recommended `android` scope.
+2. Install it and enable the module in LSPosed.
 3. Reboot the device.
 4. Add one low-risk test app to the allowlist before enabling the master switch.
 
