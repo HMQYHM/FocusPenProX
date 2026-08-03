@@ -1,0 +1,27 @@
+# Android Studio / Gradle
+.gradle/
+.kotlin/
+.idea/
+*.iml
+**/build/
+local.properties
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Signing material and packages
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+*.apk
+*.aab
+*.idsig
+
+# Local reverse-engineering and historical artifacts
+work/
+outputs/
+
+# OS files
+.DS_Store
+Thumbs.db

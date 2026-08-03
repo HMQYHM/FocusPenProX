@@ -1,0 +1,2 @@
+-keep class io.github.hmqyhm.focuspenpro.hook.** { *; }
+-keep class io.github.hmqyhm.focuspenpro.config.ConfigProvider { *; }

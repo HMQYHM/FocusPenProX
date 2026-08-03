@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FocusPen Pro X</string>
+    <string name="xposed_description">小米焦点触控笔 Pro 手势增强模块</string>
+    <string-array name="xposed_scope">
+        <item>android</item>
+    </string-array>
+</resources>
