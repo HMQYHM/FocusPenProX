@@ -35,6 +35,8 @@ FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LS
 - 架构：`arm64-v8a`
 - 触控笔：小米焦点触控笔 Pro（VID/PID `0022:5081`）
 
+预计兼容绝大部分支持小米焦点触控笔 Pro 的 HyperOS 3 设备。
+
 ### 安装
 
 1. 从 [Releases](https://github.com/HMQYHM/FocusPenProX/releases) 下载 APK。
@@ -123,6 +125,8 @@ FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus P
 - Android: 16 / API 36
 - Architecture: `arm64-v8a`
 - Stylus: Xiaomi Focus Pen Pro (VID/PID `0022:5081`)
+
+Expected to be compatible with most HyperOS 3 devices that support Xiaomi Focus Pen Pro.
 
 ### Installation
 
