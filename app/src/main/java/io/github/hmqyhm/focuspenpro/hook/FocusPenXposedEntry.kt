@@ -15,13 +15,6 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != "android" || lpparam.processName != "android") return
 
-        if (!CompatProfile.deviceMatches()) {
-            XposedBridge.log(
-                "FocusPenPro: unsupported device ${CompatProfile.description()}; no hooks installed",
-            )
-            return
-        }
-
         runCatching { install(lpparam.classLoader) }
             .onFailure {
                 XposedBridge.log(
@@ -52,14 +45,6 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
             CompatProfile.POLICY_CLASS,
             classLoader,
         )
-        verifyCapabilities(
-            touchFilmClass,
-            shortcutClass,
-            laserClass,
-            laserViewClass,
-            policyClass,
-        )
-
         val runtime = AtomicReference<FocusPenRuntime?>()
         val pendingLaserController = AtomicReference<Any?>()
         val initLock = Any()
@@ -324,7 +309,7 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
             ensureRuntime(manager)?.attachTouchFilmManager(manager)
         }
 
-        XposedBridge.log("FocusPenPro: verified hooks installed for ${CompatProfile.description()}")
+        XposedBridge.log("FocusPenPro: compatible stylus hooks installed")
     }
 
     private fun hookLaserState(
@@ -377,98 +362,6 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
                 }
             },
         )
-    }
-
-    private fun verifyCapabilities(
-        touchFilmClass: Class<*>,
-        shortcutClass: Class<*>,
-        laserClass: Class<*>,
-        laserViewClass: Class<*>,
-        policyClass: Class<*>,
-    ) {
-        check(
-            policyClass.declaredMethods.any {
-                it.name == "interceptKeyBeforeQueueing" &&
-                    it.returnType == Int::class.javaPrimitiveType &&
-                    it.parameterTypes.contentEquals(
-                        arrayOf(KeyEvent::class.java, Int::class.javaPrimitiveType),
-                    )
-            },
-        ) { "Verified MiuiPhoneWindowManager input signature is absent" }
-        check(
-            touchFilmClass.declaredMethods.any {
-                it.name == "enableVirtualLaser" &&
-                    it.returnType == Void.TYPE &&
-                    it.parameterCount == 0
-            },
-        ) { "Verified MiuiStylusTouchFilmManager.enableVirtualLaser() is absent" }
-        check(
-            touchFilmClass.declaredMethods.any {
-                it.name == "onPointerEvent" &&
-                    it.returnType == Void.TYPE &&
-                    it.parameterTypes.contentEquals(arrayOf(MotionEvent::class.java))
-            },
-        ) { "Verified MiuiStylusTouchFilmManager.onPointerEvent(MotionEvent) is absent" }
-        check(
-            touchFilmClass.declaredMethods.any {
-                it.name == "interceptKeyBeforeQueueing" &&
-                    it.returnType == Boolean::class.javaPrimitiveType &&
-                    it.parameterTypes.contentEquals(
-                        arrayOf(KeyEvent::class.java, Boolean::class.javaPrimitiveType),
-                    )
-            },
-        ) { "Verified touch-film key interception signature is absent" }
-        check(
-            laserClass.declaredMethods.any {
-                it.name == "getPosition" &&
-                    it.parameterTypes.contentEquals(arrayOf(FloatArray::class.java))
-            },
-        ) { "Verified LaserPointerController.getPosition(float[]) is absent" }
-        check(
-            laserClass.declaredMethods.any {
-                it.name == "turnonvirtuallaser" &&
-                    it.returnType == Void.TYPE &&
-                    it.parameterCount == 0
-            },
-        ) { "Verified LaserPointerController.turnonvirtuallaser() is absent" }
-        check(
-            laserClass.declaredMethods.any {
-                it.name == "turnoffvirtuallaser" &&
-                    it.returnType == Void.TYPE &&
-                    it.parameterTypes.contentEquals(arrayOf(Int::class.javaPrimitiveType))
-            },
-        ) { "Verified LaserPointerController.turnoffvirtuallaser(int) is absent" }
-        check(
-            laserClass.declaredMethods.any {
-                it.name == "turnoffvirtuallasershow" &&
-                    it.returnType == Void.TYPE &&
-                    it.parameterCount == 0
-            },
-        ) { "Verified laser presentation shutdown method is absent" }
-        check(
-            laserViewClass.declaredMethods.any {
-                it.name == "setPosition" &&
-                    it.returnType == Void.TYPE &&
-                    it.parameterTypes.contentEquals(
-                        arrayOf(
-                            Float::class.javaPrimitiveType,
-                            Float::class.javaPrimitiveType,
-                        ),
-                    )
-            },
-        ) { "Verified LaserView.setPosition(float,float) signature is absent" }
-        check(
-            touchFilmClass.declaredFields.any {
-                it.name == "sInstance" && it.type == touchFilmClass
-            },
-        ) { "Verified MiuiStylusTouchFilmManager.sInstance is absent" }
-        check(
-            shortcutClass.declaredFields.any {
-                it.name == "sInstance" && it.type == shortcutClass
-            } && shortcutClass.declaredFields.any {
-                it.name == "mLaserPointerController" && it.type == laserClass
-            },
-        ) { "Verified shortcut manager laser fields are absent" }
     }
 
     private fun recoverLaserController(shortcutClass: Class<*>): Any? =

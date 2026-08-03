@@ -1,10 +1,6 @@
 package io.github.hmqyhm.focuspenpro.hook
 
-import android.os.Build
-
 internal object CompatProfile {
-    const val DEVICE = "piano"
-
     const val TOUCH_FILM_CLASS =
         "com.miui.server.input.stylus.MiuiStylusTouchFilmManager"
     const val SHORTCUT_MANAGER_CLASS =
@@ -20,9 +16,4 @@ internal object CompatProfile {
     const val KEY_SLIDE_UP = 196
     const val KEY_SLIDE_DOWN = 197
 
-    fun deviceMatches(): Boolean =
-        Build.DEVICE == DEVICE
-
-    fun description(): String =
-        "${Build.DEVICE} / ${Build.VERSION.INCREMENTAL}"
 }

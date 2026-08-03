@@ -7,6 +7,7 @@ Gesture enhancement module for Xiaomi Focus Pen Pro
 
 > [!WARNING]
 > 本模块会通过 LSPosed 在 `system_server` 中运行。请仅在已验证设备上使用，并在升级后先用少量白名单应用测试。
+> This module runs inside `system_server` through LSPosed. Use it only on a verified device, and test with a small allowlist after system updates.
 
 ## 简体中文
 
@@ -31,11 +32,8 @@ FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LS
 - 设备：小米 Pad 8 Pro
 - 型号标识：`25091RP04C`
 - Android：16 / API 36
-- HyperOS：`OS3.0.307.0.WPYCNXM`
 - 架构：`arm64-v8a`
 - 触控笔：小米焦点触控笔 Pro（VID/PID `0022:5081`）
-
-其他设备、ROM 或 HyperOS 大版本尚未验证。能力签名不匹配时，模块会拒绝安装高风险输入 Hook 并保持系统原行为。
 
 ### 安装
 
@@ -92,36 +90,99 @@ keyPassword=YOUR_KEY_PASSWORD
 
 请勿上传完整系统 APK/JAR、账号信息或未经脱敏的日志。
 
+### 相关项目
+
+[HyperOSKeyboardFix](https://github.com/HMQYHM/HyperOSKeyboardFix) — 改善 HyperOS 平板白名单应用中的实体键盘快捷键兼容性。
+
+### 许可证
+
+Copyright © 2026 HMQYHM。本项目仅以 [GNU General Public License v3.0](LICENSE) 授权。
+
 ## English
 
-FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus Pen Pro. It extends Xiaomi's virtual-laser pipeline into a configurable stylus mouse and gesture-action system without modifying system partitions.
+FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus Pen Pro. It extends Xiaomi's virtual-laser pipeline into a configurable stylus mouse and gesture-action system.
 
-### Highlights
+### Features
 
-- Adaptive Material 3 UI with landscape and portrait navigation.
+- Material 3 configuration app with landscape and portrait layouts, predictive back, and nonlinear animations.
 - Simplified Chinese, Traditional Chinese, and English.
-- Allowlisted gesture and stylus-mouse enhancement.
-- Highest-priority blacklist that bypasses every module hook.
-- Left/right click, hold, real volume keys, navigation actions, and mouse-wheel scrolling.
-- Global four-pinch actions and app launching.
-- Fail-open hooks, circuit breaking, configuration snapshots, and stuck-input release safeguards.
-- No network permission, analytics, or data upload.
+- Ordinary gestures and stylus-mouse enhancements in allowlisted apps.
+- A highest-priority blacklist that bypasses all hooks and preserves Xiaomi's original pen and laser-brush behavior.
+- Stylus-mouse left click, right click, tap, hold, and actions at the current pointer position.
+- Up and down swipes can send real volume keys, compatible with most reading apps that use volume keys for page turning.
+- Mouse-wheel input for documents, PowerPoint, short-video apps, and other apps that support scrolling.
+- Back, Home, Recents, consume-only, and pass-through actions.
+- Global four-pinch and four-pinch-hold gestures can enable the virtual laser or stylus mouse, launch an app, or run another action.
+- In ordinary allowlist mode, double-pinch and double-pinch-hold gestures can enable the virtual laser or stylus mouse.
+- Mutual-exclusion confirmation for lists, selected apps pinned to the top, conflicting disabled apps placed at the bottom, and explicit saving.
 
-### Compatibility
+### Verified environment
 
-Currently verified only on Xiaomi Pad 8 Pro (`25091RP04C`), Android 16, HyperOS `OS3.0.307.0.WPYCNXM`, arm64-v8a, and Xiaomi Focus Pen Pro. Other devices and ROM versions are untested.
+- Device: Xiaomi Pad 8 Pro
+- Model identifier: `25091RP04C`
+- Android: 16 / API 36
+- Architecture: `arm64-v8a`
+- Stylus: Xiaomi Focus Pen Pro (VID/PID `0022:5081`)
 
 ### Installation
 
 1. Download the APK from [Releases](https://github.com/HMQYHM/FocusPenProX/releases).
 2. Install it and enable the module in LSPosed.
 3. Reboot the device.
-4. Add one low-risk test app to the allowlist before enabling the master switch.
+4. Open FocusPen Pro X, add an ordinary app to the allowlist, and then enable the master switch for testing.
+5. Add note-taking, drawing, and game apps to the blacklist to preserve their original input behavior.
 
-## Related project
+### Safety and recovery
+
+- Does not modify or replace files in `system`, `product`, `vendor`, `odm`, or other system partitions.
+- Does not disable SELinux and does not require Accessibility, device-administrator privileges, or a persistent shell.
+- Does not connect to the internet or collect or upload personal data.
+- High-frequency input paths do not read from disk or the network and only access immutable configuration snapshots.
+- Simulated press actions include safe release and timeout protection.
+- Hook callbacks catch exceptions; repeated failures trigger circuit breaking and pass original events through.
+- Turning off the master switch immediately stops taking over new events.
+- Removing the LSPosed scope or uninstalling the module, followed by a reboot, removes all in-memory hooks without a recovery script.
+
+### Build
+
+Requirements:
+
+- JDK 21
+- Android SDK Platform 36.1
+- Android Build Tools 36.x
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
+```
+
+The debug APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
+
+For a release build, place an untracked `keystore.properties` file in the project root:
+
+```properties
+storeFile=/absolute/path/to/release.jks
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=YOUR_KEY_ALIAS
+keyPassword=YOUR_KEY_PASSWORD
+```
+
+Then run `.\gradlew.bat :app:assembleRelease`. Keep an offline backup of the signing key; without it, future updates cannot replace an installed release.
+
+### Issue reports
+
+Please include:
+
+- Tablet model and full Android and HyperOS versions;
+- LSPosed version and root solution version;
+- The affected gesture, foreground app, and laser state;
+- LSPosed logs with account names, paths, and other personal information removed.
+
+Do not upload complete system APK/JAR files, account information, or unredacted logs.
+
+### Related project
 
 [HyperOSKeyboardFix](https://github.com/HMQYHM/HyperOSKeyboardFix) — improves physical-keyboard shortcut compatibility in allowlisted apps on HyperOS tablets.
 
-## License
+### License
 
 Copyright © 2026 HMQYHM. Licensed under the [GNU General Public License v3.0 only](LICENSE).
