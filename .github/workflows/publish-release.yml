@@ -10,7 +10,7 @@ on:
       asset_ref:
         description: Temporary branch containing the signed asset
         required: true
-        default: release-upload-v0.8.1
+        default: release-upload-chunks-v0.8.1
 
 permissions:
   contents: write
@@ -24,11 +24,19 @@ jobs:
         with:
           ref: ${{ inputs.asset_ref }}
 
-      - name: Assemble signed APK
+      - name: Assemble and verify signed APK
         run: |
-          if [ ! -f dist/FocusPen-Pro-X-0.8.1.apk ]; then
-            mkdir -p dist
-            cat release-chunks/FocusPen-Pro-X-0.8.1.apk.part-* > dist/FocusPen-Pro-X-0.8.1.apk
+          mkdir -p dist
+          cat release-chunks/FocusPen-Pro-X-0.8.1.apk.part-* > dist/FocusPen-Pro-X-0.8.1.apk
+          echo "d53f349c2785a0071ab0d23caddc91a3b23730d338700f0a6966892ace3ea608  dist/FocusPen-Pro-X-0.8.1.apk" | sha256sum --check
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "FocusPen Pro X 0.8.1" --notes-file CHANGELOG.md --draft
           fi
 
       - name: Upload signed APK
