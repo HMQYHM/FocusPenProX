@@ -24,6 +24,13 @@ jobs:
         with:
           ref: ${{ inputs.asset_ref }}
 
+      - name: Assemble signed APK
+        run: |
+          if [ ! -f dist/FocusPen-Pro-X-0.8.1.apk ]; then
+            mkdir -p dist
+            cat release-chunks/FocusPen-Pro-X-0.8.1.apk.part-* > dist/FocusPen-Pro-X-0.8.1.apk
+          fi
+
       - name: Upload signed APK
         env:
           GH_TOKEN: ${{ github.token }}
