@@ -62,6 +62,7 @@ internal class FocusPenRuntime(
 
     init {
         config = SystemConfigClient(context.contentResolver, worker) {
+            LaserBrushColorController.restoreAll()
             offLaserTapDetector.reset()
             globalHoldAwaitingRelease.set(false)
             discardPendingVendorPinch()
@@ -178,6 +179,7 @@ internal class FocusPenRuntime(
             return
         }
         if (enabled) explicitLaserOff.set(false) else explicitLaserOff.set(true)
+        if (!enabled) LaserBrushColorController.restoreAll()
         if (laserEnabled.getAndSet(enabled) != enabled) {
             cancelActiveGesture("激光状态变化")
             reporter.event("虚拟激光=${if (enabled) "开启" else "关闭"} ($source)")
@@ -206,6 +208,7 @@ internal class FocusPenRuntime(
 
     private fun applyForeground(next: String?) {
         if (foreground.getAndSet(next) != next) {
+            LaserBrushColorController.restoreAll()
             offLaserTapDetector.reset()
             globalHoldAwaitingRelease.set(false)
             discardPendingVendorPinch()
@@ -216,11 +219,55 @@ internal class FocusPenRuntime(
         }
     }
 
+    fun configuredLaserBrushColor(): LaserBrushColorController.ColorSpec? {
+        if (circuitOpen.get()) return null
+        val snapshot = config.snapshot.get()
+        if (!snapshot.appliesTo(foreground.get())) return null
+        return when (snapshot.laserBrushColorMode) {
+            ConfigContract.LASER_COLOR_MODE_RAINBOW ->
+                LaserBrushColorController.ColorSpec(
+                    colors = listOf(
+                        0xFFFF0000.toInt(),
+                        0xFFFF8000.toInt(),
+                        0xFFFFFF00.toInt(),
+                        0xFF00D060.toInt(),
+                        0xFF00BFFF.toInt(),
+                        0xFF3050FF.toInt(),
+                        0xFFA020F0.toInt(),
+                        0xFFFF1493.toInt(),
+                    ),
+                    spatial = true,
+                )
+            ConfigContract.LASER_COLOR_MODE_GRADIENT ->
+                LaserBrushColorController.ColorSpec(
+                    colors = snapshot.laserGradientColors.take(8),
+                    spatial = true,
+                ).takeIf { it.colors.size >= 2 }
+            ConfigContract.LASER_COLOR_MODE_MARQUEE ->
+                LaserBrushColorController.ColorSpec(
+                    colors = snapshot.laserFlashingColors.take(8),
+                    cycleMs = (62_500.0 / snapshot.laserMarqueeSpeedTenths)
+                        .toLong()
+                        .coerceAtLeast(625L),
+                    randomSlowestCycleMs = if (snapshot.laserMarqueeRandomSpeed) {
+                        6_250L
+                    } else {
+                        0L
+                    },
+                ).takeIf { it.colors.size >= 2 }
+            ConfigContract.LASER_COLOR_MODE_SOLID ->
+                snapshot.laserBrushColor.takeUnless {
+                    it == ConfigContract.LASER_BRUSH_COLOR_SYSTEM
+                }?.let { LaserBrushColorController.ColorSpec(listOf(it)) }
+            else -> null
+        }
+    }
+
     fun shouldUseSystemCursor(): Boolean =
         !circuitOpen.get() &&
             !isLaserEnableSuppressed() &&
             laserEnabled.get() &&
-            config.snapshot.get().appliesTo(foreground.get())
+            config.snapshot.get().usesLaserMouse(foreground.get())
 
     /**
      * LaserView.onDraw is itself the authoritative signal that Xiaomi is presenting
@@ -229,7 +276,7 @@ internal class FocusPenRuntime(
     fun shouldReplaceLaserPresentation(): Boolean =
         !circuitOpen.get() &&
             !isLaserEnableSuppressed() &&
-            config.snapshot.get().appliesTo(foreground.get())
+            config.snapshot.get().usesLaserMouse(foreground.get())
 
     /**
      * Xiaomi can request drawing mode while a mapped mouse-button hold is active.
@@ -370,29 +417,35 @@ internal class FocusPenRuntime(
     }
 
     /**
-     * Xiaomi stops presenting the laser cursor after a finger touches the screen, but its
-     * virtual-laser input mode can remain active. Mirror the shortcut manager's verified
-     * full-exit path so hidden mouse mappings cannot continue accepting pen button events.
+     * Xiaomi can hide the laser presentation after a finger touch while leaving its input
+     * mode active. Fully exit both enhanced laser drawing and the stylus mouse so the next
+     * global four-pinch can start from a clean off state. Blacklisted apps remain untouched.
      */
     fun onPointerEvent(event: MotionEvent) {
-        if (event.actionMasked != MotionEvent.ACTION_DOWN ||
-            !event.isFromSource(InputDevice.SOURCE_TOUCHSCREEN) ||
-            event.pointerCount < 1 ||
-            event.getToolType(0) != MotionEvent.TOOL_TYPE_FINGER ||
-            circuitOpen.get() ||
-            !laserEnabled.get() ||
-            !config.snapshot.get().appliesTo(foreground.get())
-        ) {
-            return
+        if (event.actionMasked != MotionEvent.ACTION_DOWN || event.pointerCount < 1) return
+        val toolType = event.getToolType(0)
+        val isFingerTouch = event.isFromSource(InputDevice.SOURCE_TOUCHSCREEN) &&
+            toolType == MotionEvent.TOOL_TYPE_FINGER
+        val isStylusTouch = event.isFromSource(InputDevice.SOURCE_STYLUS) &&
+            (toolType == MotionEvent.TOOL_TYPE_STYLUS ||
+                toolType == MotionEvent.TOOL_TYPE_ERASER)
+        if ((!isFingerTouch && !isStylusTouch) || circuitOpen.get() || !laserEnabled.get()) return
+        val snapshot = config.snapshot.get()
+        val target = foreground.get()
+        if (snapshot.blocksAllHooks(target) ||
+            (!snapshot.globalActionsEnabled && !snapshot.appliesTo(target))
+        ) return
+        val reason = if (isStylusTouch) "笔尖触屏" else "手指触屏"
+        if (snapshot.usesLaserMouse(target)) {
+            armStartupExitGuardIfNeeded(reason)
         }
-        armStartupExitGuardIfNeeded("手指触屏")
-        requestCompleteLaserExit("手指触屏")
+        requestCompleteLaserExit(reason)
     }
 
     fun onLaserPresentationHidden(source: String, wasMousePresentation: Boolean) {
         val snapshot = config.snapshot.get()
         if (circuitOpen.get() ||
-            !snapshot.appliesTo(foreground.get()) ||
+            !snapshot.usesLaserMouse(foreground.get()) ||
             !wasMousePresentation
         ) return
         val reason = "鼠标显示消失 ($source)"
@@ -456,18 +509,22 @@ internal class FocusPenRuntime(
         // vendor call run on our worker to avoid re-entering pointer/window dispatch.
         explicitLaserOff.set(true)
         laserEnabled.set(false)
+        offLaserTapDetector.reset()
+        globalHoldAwaitingRelease.set(false)
+        discardPendingVendorPinch()
         if (!completeExitPending.compareAndSet(false, true)) return
         worker.post {
             try {
+                LaserBrushColorController.restoreAll()
                 cancelActiveGesture(reason)
                 LaserCursorRenderer.restoreAll()
                 val controller = laserController.get()
                 val success = controller != null && runCatching {
                     XposedHelpers.callMethod(controller, "turnoffvirtuallaser", 0)
                 }.isSuccess
-                reporter.event("$reason → 完整退出手写笔鼠标${if (success) "成功" else "失败"}")
+                reporter.event("$reason → 完整退出虚拟激光/手写笔鼠标${if (success) "成功" else "失败"}")
                 reportStatus(
-                    if (success) "$reason，已退出手写笔鼠标"
+                    if (success) "$reason，已退出虚拟激光/手写笔鼠标"
                     else "$reason，模块映射已停止；厂商退出调用失败",
                 )
             } catch (throwable: Throwable) {
@@ -549,7 +606,7 @@ internal class FocusPenRuntime(
             return event.action == KeyEvent.ACTION_DOWN || event.action == KeyEvent.ACTION_UP
         }
         offLaserTapDetector.reset()
-        if (!snapshot.appliesTo(target) || !actualLaser) {
+        if (!snapshot.usesLaserMouse(target) || !actualLaser) {
             cancelActiveGesture("规则不再匹配")
             return false
         }
@@ -639,7 +696,7 @@ internal class FocusPenRuntime(
                 else -> Unit
             }
             if (circuitOpen.get() ||
-                !config.snapshot.get().appliesTo(foreground.get()) ||
+                !config.snapshot.get().usesLaserMouse(foreground.get()) ||
                 !laserEnabled.get()
             ) {
                 return
@@ -742,6 +799,7 @@ internal class FocusPenRuntime(
                     globalHoldAwaitingRelease.set(false)
                     discardPendingVendorPinch()
                     cancelActiveGesture(intent?.action ?: "状态广播")
+                    LaserBrushColorController.restoreAll()
                     reporter.event("状态机取消：${intent?.action ?: "未知广播"}")
                 }
             },

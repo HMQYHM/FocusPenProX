@@ -173,6 +173,7 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
                     val currentRuntime = runtime.get() ?: return
                     val x = param.args.getOrNull(0) as? Float ?: return
                     val y = param.args.getOrNull(1) as? Float ?: return
+                    updateLaserBrushColor(param.thisObject, currentRuntime, x, y)
                     if (currentRuntime.shouldReplaceLaserPresentation() &&
                         LaserCursorRenderer.isLaserMode(param.thisObject)
                     ) {
@@ -209,6 +210,12 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
                         param.result = null
                     }
                 }
+
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    if (param.throwable == null) {
+                        runtime.get()?.let { updateLaserBrushColor(param.thisObject, it) }
+                    }
+                }
             },
         )
 
@@ -223,6 +230,12 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
                         LaserCursorRenderer.isActive(param.thisObject)
                     ) {
                         param.result = null
+                    }
+                }
+
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    if (param.throwable == null) {
+                        runtime.get()?.let { updateLaserBrushColor(param.thisObject, it) }
                     }
                 }
             },
@@ -370,6 +383,34 @@ class FocusPenXposedEntry : IXposedHookLoadPackage {
                 ?: return null
             XposedHelpers.getObjectField(shortcut, "mLaserPointerController")
         }.getOrNull()
+
+    private fun updateLaserBrushColor(
+        laserView: Any,
+        runtime: FocusPenRuntime,
+        anchorX: Float? = null,
+        anchorY: Float? = null,
+    ) {
+        runCatching {
+            if (runtime.shouldReplaceLaserPresentation() &&
+                LaserCursorRenderer.isLaserMode(laserView)
+            ) {
+                LaserBrushColorController.restore(laserView)
+            } else {
+                LaserBrushColorController.update(
+                    laserView,
+                    runtime.configuredLaserBrushColor(),
+                    anchorX,
+                    anchorY,
+                )
+            }
+        }.onFailure {
+            runCatching { LaserBrushColorController.restore(laserView) }
+            XposedBridge.log(
+                "FocusPenPro: laser brush color failed; system color restored\n" +
+                    it.stackTraceToString(),
+            )
+        }
+    }
 
     private fun recoverCurrentFocus(touchFilmClass: Class<*>): Any? =
         runCatching {

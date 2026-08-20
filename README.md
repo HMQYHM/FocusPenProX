@@ -17,8 +17,10 @@ FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LS
 
 - Material 3 配置应用，支持横屏、竖屏、预测返回和非线性动画。
 - 简体中文、繁體中文和 English。
-- 白名单应用启用普通手势与手写笔鼠标增强。
+- 白名单应用启用普通手势增强，并可从白名单中单独选择手写笔鼠标生效范围。
 - 黑名单拥有最高优先级：完全不 Hook，保留小米原版触控笔和激光画笔逻辑。
+- 可在白名单应用中使用自定义色号、单条轨迹多色彩虹、2～8 色空间渐变或闪烁变色，并随时恢复系统颜色。
+- 渐变与闪烁分别保存颜色数量和颜色列表。闪烁速度支持 1.0～10.0 档和 0.1 步进，新 10.0 档速度是上一版 10 档的两倍；可在 1.0 至所选上限间随机变速。空间渐变使用固定画布坐标，重复落笔不会改变已有轨迹的颜色。
 - 手写笔鼠标支持左键、右键、点击、长按和当前指针位置操作。
 - 上下滑可发送真实音量键，兼容多数使用音量键翻页的阅读应用。
 - 支持鼠标滚轮，可用于文档、PowerPoint、短视频及其他支持滚轮输入的应用。
@@ -108,8 +110,10 @@ FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus P
 
 - Material 3 configuration app with landscape and portrait layouts, predictive back, and nonlinear animations.
 - Simplified Chinese, Traditional Chinese, and English.
-- Ordinary gestures and stylus-mouse enhancements in allowlisted apps.
+- Ordinary gestures in allowlisted apps, with a separate stylus-mouse scope selected from the allowlist.
 - A highest-priority blacklist that bypasses all hooks and preserves Xiaomi's original pen and laser-brush behavior.
+- Xiaomi's original laser brush supports custom hex colors, multicolor rainbow strokes, spatial gradients of 2–8 colors, and flashing colors in allowlisted apps, with one-tap restoration of the system color.
+- Gradient and flashing modes store separate color counts and color lists. Flashing speed ranges from 1.0 to 10.0 in 0.1 increments; the new 10.0 setting is twice as fast as the previous level 10, with an optional random speed between 1.0 and the selected limit. Spatial gradients use fixed canvas coordinates so a new stroke does not recolor existing strokes.
 - Stylus-mouse left click, right click, tap, hold, and actions at the current pointer position.
 - Up and down swipes can send real volume keys, compatible with most reading apps that use volume keys for page turning.
 - Mouse-wheel input for documents, PowerPoint, short-video apps, and other apps that support scrolling.

@@ -7,9 +7,22 @@ plugins {
 
 val signingPropertiesFile = rootProject.file("keystore.properties")
 val signingProperties = Properties()
-val releaseSigningAvailable = signingPropertiesFile.isFile
+val environmentSigning = mapOf(
+    "storeFile" to System.getenv("FOCUSPEN_KEYSTORE_FILE"),
+    "storePassword" to System.getenv("FOCUSPEN_KEYSTORE_PASSWORD"),
+    "keyAlias" to System.getenv("FOCUSPEN_KEY_ALIAS"),
+    "keyPassword" to System.getenv("FOCUSPEN_KEY_PASSWORD"),
+)
+val releaseSigningAvailable = signingPropertiesFile.isFile ||
+    environmentSigning.values.all { !it.isNullOrBlank() }
 if (releaseSigningAvailable) {
-    signingPropertiesFile.inputStream().use(signingProperties::load)
+    if (signingPropertiesFile.isFile) {
+        signingPropertiesFile.inputStream().use(signingProperties::load)
+    } else {
+        environmentSigning.forEach { (key, value) ->
+            signingProperties.setProperty(key, value.orEmpty())
+        }
+    }
 }
 
 android {
@@ -21,8 +34,8 @@ android {
         applicationId = "io.github.hmqyhm.focuspenpro"
         minSdk = 30
         targetSdk = 36
-        versionCode = 51
-        versionName = "0.8.1-mvp"
+        versionCode = 52
+        versionName = "0.9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {

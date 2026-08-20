@@ -7,6 +7,7 @@ data class ModuleConfig(
     val workMode: String = ConfigContract.WORK_MODE_WHITELIST,
     val whitelist: Set<String> = emptySet(),
     val blacklist: Set<String> = emptySet(),
+    val laserMouseApps: Set<String> = emptySet(),
     val multiClickMs: Long = 360L,
     val globalActionsEnabled: Boolean = false,
     val tripleAction: String = ConfigContract.TRIPLE_ACTION_ENABLE_LASER,
@@ -15,6 +16,12 @@ data class ModuleConfig(
     val fourHoldPackage: String = "",
     val gestureActions: Map<String, String> = ConfigContract.DEFAULT_GESTURE_ACTIONS,
     val scrollAmount: String = ConfigContract.SCROLL_MEDIUM,
+    val laserBrushColor: Int = ConfigContract.LASER_BRUSH_COLOR_SYSTEM,
+    val laserBrushColorMode: String = ConfigContract.LASER_COLOR_MODE_SYSTEM,
+    val laserGradientColors: List<Int> = ConfigContract.DEFAULT_LASER_GRADIENT_COLORS,
+    val laserFlashingColors: List<Int> = ConfigContract.DEFAULT_LASER_GRADIENT_COLORS,
+    val laserMarqueeSpeedTenths: Int = 30,
+    val laserMarqueeRandomSpeed: Boolean = false,
     val revision: Long = 0L,
 ) {
     fun appliesTo(packageName: String?): Boolean {
@@ -28,11 +35,15 @@ data class ModuleConfig(
     fun blocksAllHooks(packageName: String?): Boolean =
         !packageName.isNullOrBlank() && packageName in blacklist
 
+    fun usesLaserMouse(packageName: String?): Boolean =
+        appliesTo(packageName) && packageName in laserMouseApps
+
     fun toBundle() = Bundle().apply {
         putBoolean(ConfigContract.KEY_ENABLED, enabled)
         putString(ConfigContract.KEY_WORK_MODE, workMode)
         putStringArrayList(ConfigContract.KEY_WHITELIST, ArrayList(whitelist))
         putStringArrayList(ConfigContract.KEY_BLACKLIST, ArrayList(blacklist))
+        putStringArrayList(ConfigContract.KEY_LASER_MOUSE_APPS, ArrayList(laserMouseApps))
         putLong(ConfigContract.KEY_MULTI_CLICK_MS, multiClickMs)
         putBoolean(ConfigContract.KEY_GLOBAL_ACTIONS_ENABLED, globalActionsEnabled)
         putString(ConfigContract.KEY_TRIPLE_ACTION, tripleAction)
@@ -44,6 +55,12 @@ data class ModuleConfig(
             ArrayList(ConfigContract.encodeGestureActions(gestureActions)),
         )
         putString(ConfigContract.KEY_SCROLL_AMOUNT, scrollAmount)
+        putInt(ConfigContract.KEY_LASER_BRUSH_COLOR, laserBrushColor)
+        putString(ConfigContract.KEY_LASER_BRUSH_COLOR_MODE, laserBrushColorMode)
+        putIntArray(ConfigContract.KEY_LASER_GRADIENT_COLORS, laserGradientColors.toIntArray())
+        putIntArray(ConfigContract.KEY_LASER_FLASHING_COLORS, laserFlashingColors.toIntArray())
+        putInt(ConfigContract.KEY_LASER_MARQUEE_SPEED_TENTHS, laserMarqueeSpeedTenths)
+        putBoolean(ConfigContract.KEY_LASER_MARQUEE_RANDOM_SPEED, laserMarqueeRandomSpeed)
         putLong(ConfigContract.KEY_REVISION, revision)
     }
 
@@ -59,6 +76,10 @@ data class ModuleConfig(
                 ?.toSet()
                 .orEmpty(),
             blacklist = bundle.getStringArrayList(ConfigContract.KEY_BLACKLIST)
+                ?.filter(String::isNotBlank)
+                ?.toSet()
+                .orEmpty(),
+            laserMouseApps = bundle.getStringArrayList(ConfigContract.KEY_LASER_MOUSE_APPS)
                 ?.filter(String::isNotBlank)
                 ?.toSet()
                 .orEmpty(),
@@ -85,6 +106,34 @@ data class ModuleConfig(
                 ConfigContract.KEY_SCROLL_AMOUNT,
                 ConfigContract.SCROLL_MEDIUM,
             ) ?: ConfigContract.SCROLL_MEDIUM,
+            laserBrushColor = bundle.getInt(
+                ConfigContract.KEY_LASER_BRUSH_COLOR,
+                ConfigContract.LASER_BRUSH_COLOR_SYSTEM,
+            ),
+            laserBrushColorMode = bundle.getString(
+                ConfigContract.KEY_LASER_BRUSH_COLOR_MODE,
+                ConfigContract.LASER_COLOR_MODE_SYSTEM,
+            )?.takeIf { it in ConfigContract.LASER_COLOR_MODES }
+                ?: ConfigContract.LASER_COLOR_MODE_SYSTEM,
+            laserGradientColors = bundle.getIntArray(ConfigContract.KEY_LASER_GRADIENT_COLORS)
+                ?.toList()
+                ?.takeIf { it.size in 2..8 }
+                ?: ConfigContract.DEFAULT_LASER_GRADIENT_COLORS,
+            laserFlashingColors = bundle.getIntArray(ConfigContract.KEY_LASER_FLASHING_COLORS)
+                ?.toList()
+                ?.takeIf { it.size in 2..8 }
+                ?: bundle.getIntArray(ConfigContract.KEY_LASER_GRADIENT_COLORS)
+                    ?.toList()
+                    ?.takeIf { it.size in 2..8 }
+                ?: ConfigContract.DEFAULT_LASER_GRADIENT_COLORS,
+            laserMarqueeSpeedTenths = bundle.getInt(
+                ConfigContract.KEY_LASER_MARQUEE_SPEED_TENTHS,
+                30,
+            ).coerceIn(10, 100),
+            laserMarqueeRandomSpeed = bundle.getBoolean(
+                ConfigContract.KEY_LASER_MARQUEE_RANDOM_SPEED,
+                false,
+            ),
             revision = bundle.getLong(ConfigContract.KEY_REVISION, 0L),
         )
     }

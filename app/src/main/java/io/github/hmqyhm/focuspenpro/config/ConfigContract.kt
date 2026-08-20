@@ -17,6 +17,7 @@ object ConfigContract {
     const val KEY_WORK_MODE = "work_mode"
     const val KEY_WHITELIST = "whitelist"
     const val KEY_BLACKLIST = "blacklist"
+    const val KEY_LASER_MOUSE_APPS = "laser_mouse_apps"
     const val KEY_MULTI_CLICK_MS = "multi_click_ms"
     const val KEY_GLOBAL_ACTIONS_ENABLED = "global_actions_enabled"
     const val KEY_TRIPLE_ACTION = "triple_action"
@@ -25,6 +26,13 @@ object ConfigContract {
     const val KEY_FOUR_HOLD_PACKAGE = "four_hold_package"
     const val KEY_GESTURE_ACTIONS = "gesture_actions"
     const val KEY_SCROLL_AMOUNT = "scroll_amount"
+    const val KEY_LASER_BRUSH_COLOR = "laser_brush_color"
+    const val KEY_LASER_BRUSH_COLOR_MODE = "laser_brush_color_mode"
+    const val KEY_LASER_GRADIENT_COLORS = "laser_gradient_colors"
+    const val KEY_LASER_FLASHING_COLORS = "laser_flashing_colors"
+    const val KEY_LASER_MARQUEE_SPEED = "laser_marquee_speed"
+    const val KEY_LASER_MARQUEE_SPEED_TENTHS = "laser_marquee_speed_tenths"
+    const val KEY_LASER_MARQUEE_RANDOM_SPEED = "laser_marquee_random_speed"
     const val KEY_REVISION = "revision"
 
     const val KEY_RUNTIME_ACTIVE = "runtime_active"
@@ -68,6 +76,24 @@ object ConfigContract {
     const val SCROLL_SHORT = "short"
     const val SCROLL_MEDIUM = "medium"
     const val SCROLL_LONG = "long"
+
+    const val LASER_BRUSH_COLOR_SYSTEM = 0
+    const val LASER_COLOR_MODE_SYSTEM = "system"
+    const val LASER_COLOR_MODE_SOLID = "solid"
+    const val LASER_COLOR_MODE_RAINBOW = "rainbow"
+    const val LASER_COLOR_MODE_GRADIENT = "gradient"
+    const val LASER_COLOR_MODE_MARQUEE = "marquee"
+    val LASER_COLOR_MODES = setOf(
+        LASER_COLOR_MODE_SYSTEM,
+        LASER_COLOR_MODE_SOLID,
+        LASER_COLOR_MODE_RAINBOW,
+        LASER_COLOR_MODE_GRADIENT,
+        LASER_COLOR_MODE_MARQUEE,
+    )
+    val DEFAULT_LASER_GRADIENT_COLORS = listOf(
+        0xFFFF3B30.toInt(),
+        0xFF007AFF.toInt(),
+    )
 
     val DEFAULT_GESTURE_ACTIONS: Map<String, String> = linkedMapOf(
         GESTURE_PINCH to ACTION_MOUSE_LEFT_CLICK,

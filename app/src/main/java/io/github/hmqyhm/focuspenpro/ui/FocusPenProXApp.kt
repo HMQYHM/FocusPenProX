@@ -68,6 +68,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -116,7 +117,7 @@ private const val CURRENT_PROJECT_URL = "https://github.com/HMQYHM/FocusPenProX"
 private const val KEY_LANGUAGE = "language"
 private const val KEY_LAUNCH_COUNT = "launch_count"
 private const val KEY_STAR_COMPLETED = "star_completed"
-private const val TIP_COUNT = 16
+private const val TIP_COUNT = 18
 
 private enum class UiLanguage(val code: String) {
     SIMPLIFIED("zh-CN"), TRADITIONAL("zh-TW"), ENGLISH("en");
@@ -126,7 +127,7 @@ private enum class UiLanguage(val code: String) {
     }
 }
 
-private enum class XPage { HOME, SCOPE, GESTURES, OTHER, WHITELIST, BLACKLIST, APP_PICKER }
+private enum class XPage { HOME, SCOPE, GESTURES, OTHER, WHITELIST, LASER_MOUSE, BLACKLIST, APP_PICKER }
 
 private enum class AppPickerTarget { FOUR_TAP, FOUR_HOLD }
 
@@ -351,6 +352,7 @@ private fun FocusPenProXContent(activity: MainActivity) {
                                 ScopePage(
                                     language, config,
                                     onWhitelist = { navigate(XPage.WHITELIST) },
+                                    onLaserMouse = { navigate(XPage.LASER_MOUSE) },
                                     onBlacklist = { navigate(XPage.BLACKLIST) },
                                 )
                             }
@@ -388,6 +390,9 @@ private fun FocusPenProXContent(activity: MainActivity) {
                             }
                             XPage.WHITELIST -> AppSelectionPage(
                                 language, true, apps, config, ::updateConfig, ::popPage,
+                            )
+                            XPage.LASER_MOUSE -> LaserMouseSelectionPage(
+                                language, apps, config, ::updateConfig, ::popPage,
                             )
                             XPage.BLACKLIST -> AppSelectionPage(
                                 language, false, apps, config, ::updateConfig, ::popPage,
@@ -495,7 +500,7 @@ private fun SideNavigation(
         }
         topPages(language).forEach { (target, symbol, title) ->
             val selected = page == target ||
-                (target == XPage.SCOPE && page in listOf(XPage.WHITELIST, XPage.BLACKLIST)) ||
+                (target == XPage.SCOPE && page in listOf(XPage.WHITELIST, XPage.LASER_MOUSE, XPage.BLACKLIST)) ||
                 (target == XPage.GESTURES && page == XPage.APP_PICKER)
             SideNavigationItem(
                 symbol = symbol,
@@ -600,7 +605,7 @@ private fun CompactNavigation(page: XPage, language: UiLanguage, navigate: (XPag
         topPages(language).forEach { (target, symbol, title) ->
             NavigationBarItem(
                 selected = page == target ||
-                    (target == XPage.SCOPE && page in listOf(XPage.WHITELIST, XPage.BLACKLIST)) ||
+                    (target == XPage.SCOPE && page in listOf(XPage.WHITELIST, XPage.LASER_MOUSE, XPage.BLACKLIST)) ||
                     (target == XPage.GESTURES && page == XPage.APP_PICKER),
                 onClick = { navigate(target) },
                 icon = { NavSymbol(symbol, 27) },
@@ -695,7 +700,9 @@ private fun tips(language: UiLanguage): List<String> = listOf(
     l(language, "鼠标滚轮动作也能用来上下浏览抖音等支持滚轮操作的短视频应用。", "滑鼠滾輪動作也能用來上下瀏覽 TikTok 等支援滾輪操作的短影音應用程式。", "Mouse-wheel actions can also scroll through TikTok and other short-video apps that support wheel input."),
     l(language, "开启全局动作后，激光画笔清屏结束时，可直接触发设为“开启虚拟激光或手写笔鼠标”的手势，再次进入激光画笔。", "啟用全域動作後，雷射畫筆清除畫面結束時，可直接觸發設為「開啟虛擬雷射或手寫筆滑鼠」的手勢，再次進入雷射畫筆。", "With global actions enabled, after clearing the laser canvas, trigger a gesture assigned to “Enable virtual laser or stylus mouse” to enter the laser pen again."),
     l(language, "轻触两次触控笔的识别区域，可快速关闭当前的虚拟激光或手写笔鼠标。", "輕觸兩次觸控筆的感應區域，可快速關閉目前的虛擬雷射或手寫筆滑鼠。", "Double-tap the pen’s sensing area to quickly close the active virtual laser or stylus mouse."),
+    l(language, "启用增强功能后，为等待多次轻捏判定，快捷环的显示可能会略有延迟。", "啟用增強功能後，為等待多次輕捏判定，快捷環的顯示可能會略有延遲。", "When enhancements are enabled, the shortcut ring may appear slightly later while the module waits for a possible multi-pinch gesture."),
     l(language, "触摸屏幕即可直接关闭当前的虚拟激光或手写笔鼠标。", "輕觸螢幕即可直接關閉目前的虛擬雷射或手寫筆滑鼠。", "Touch the screen to immediately close the active virtual laser or stylus mouse."),
+    l(language, "如果虚拟激光或手写笔鼠标无法唤出，请先用手指轻触一下屏幕，再重新尝试唤出。", "如果虛擬雷射或手寫筆滑鼠無法喚出，請先用手指輕觸一下螢幕，再重新嘗試喚出。", "If the virtual laser or stylus mouse does not activate, touch the screen once with your finger, then try again."),
     l(language, "建议将笔记、绘画和游戏应用加入黑名单，避免增强手势影响原版书写、绘画或游戏操作哦 😁", "建議將筆記、繪圖與遊戲應用程式加入黑名單，避免增強手勢影響原版書寫、繪圖或遊戲操作喔 😁", "Add note-taking, drawing, and game apps to the blacklist so enhanced gestures don’t interfere with their original controls. 😁"),
     l(language, "发现 Bug 或有功能建议？欢迎前往项目网页提交反馈哦。", "發現 Bug 或有功能建議？歡迎前往專案網頁提交意見喔。", "Found a bug or have a suggestion? You’re welcome to submit it on the project page."),
     l(language, "黑名单拥有最高优先级：名单内完全不 Hook，也不会触发任何增强操作。", "黑名單擁有最高優先級：名單內完全不 Hook，也不會觸發任何增強操作。", "The blacklist has the highest priority: blacklisted apps are never hooked and trigger no enhanced actions."),
@@ -910,6 +917,7 @@ private fun ScopePage(
     language: UiLanguage,
     config: ModuleConfig,
     onWhitelist: () -> Unit,
+    onLaserMouse: () -> Unit,
     onBlacklist: () -> Unit,
 ) {
     LazyColumn(
@@ -934,11 +942,24 @@ private fun ScopePage(
                 title = l(language, "白名单", "白名單", "Whitelist"),
                 detail = l(
                     language,
-                    "启用普通手势与手写笔鼠标增强 · ${config.whitelist.size} 个应用",
-                    "啟用普通手勢與手寫筆滑鼠增強 · ${config.whitelist.size} 個應用程式",
-                    "Enable gestures and stylus mouse · ${config.whitelist.size} apps",
+                    "启用普通手势增强 · ${config.whitelist.size} 个应用",
+                    "啟用普通手勢增強 · ${config.whitelist.size} 個應用程式",
+                    "Enable ordinary gestures · ${config.whitelist.size} apps",
                 ),
                 onClick = onWhitelist,
+            )
+        }
+        item {
+            ScopeCard(
+                symbol = "⌁",
+                title = l(language, "手写笔鼠标范围", "手寫筆滑鼠範圍", "Stylus mouse scope"),
+                detail = l(
+                    language,
+                    "从白名单中选择使用手写笔鼠标的应用 · ${config.laserMouseApps.size} 个应用",
+                    "從白名單中選擇使用手寫筆滑鼠的應用程式 · ${config.laserMouseApps.size} 個應用程式",
+                    "Choose stylus-mouse apps from the whitelist · ${config.laserMouseApps.size} apps",
+                ),
+                onClick = onLaserMouse,
             )
         }
         item {
@@ -1013,6 +1034,40 @@ private fun AppSelectionPage(
         mutableStateOf(if (whitelist) config.blacklist else config.whitelist)
     }
     var pendingTransfer by remember { mutableStateOf<XAppEntry?>(null) }
+    var confirmBack by remember { mutableStateOf(false) }
+    val hasUnsavedChanges = if (whitelist) {
+        selected != config.whitelist || opposite != config.blacklist
+    } else {
+        selected != config.blacklist || opposite != config.whitelist
+    }
+    val saveChanges: () -> Unit = {
+        updateConfig { current ->
+            if (whitelist) {
+                val newlyAllowlisted = selected - current.whitelist
+                current.copy(
+                    whitelist = selected,
+                    blacklist = opposite,
+                    laserMouseApps = (current.laserMouseApps + newlyAllowlisted)
+                        .intersect(selected),
+                )
+            } else {
+                current.copy(
+                    blacklist = selected,
+                    whitelist = opposite,
+                    laserMouseApps = current.laserMouseApps.intersect(opposite),
+                )
+            }
+        }
+        onSaved()
+    }
+    PredictiveBackHandler(enabled = hasUnsavedChanges) { events ->
+        try {
+            events.collect { }
+            confirmBack = true
+        } catch (_: CancellationException) {
+            // A cancelled predictive gesture keeps the editor open.
+        }
+    }
     val filtered = remember(apps, search, selected, opposite) {
         val matches = if (search.isBlank()) apps else apps.filter {
             it.label.contains(search, true) || it.packageName.contains(search, true)
@@ -1115,14 +1170,7 @@ private fun AppSelectionPage(
         }
         FloatingActionButton(
             onClick = {
-                updateConfig { current ->
-                    if (whitelist) {
-                        current.copy(whitelist = selected, blacklist = opposite)
-                    } else {
-                        current.copy(blacklist = selected, whitelist = opposite)
-                    }
-                }
-                onSaved()
+                saveChanges()
             },
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
             shape = CircleShape,
@@ -1162,6 +1210,208 @@ private fun AppSelectionPage(
                 TextButton(onClick = { pendingTransfer = null }) {
                     Text(l(language, "否", "否", "No"))
                 }
+            },
+        )
+    }
+
+    if (confirmBack) {
+        AlertDialog(
+            onDismissRequest = { confirmBack = false },
+            title = { Text(l(language, "保存名单更改？", "儲存名單變更？", "Save list changes?")) },
+            text = {
+                Text(l(language, "当前名单有未保存的更改，返回前是否保存？", "目前名單有未儲存的變更，返回前是否儲存？", "This list has unsaved changes. Save them before leaving?"))
+            },
+            confirmButton = {
+                Button(onClick = {
+                    confirmBack = false
+                    saveChanges()
+                }) { Text(l(language, "保存", "儲存", "Save")) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    confirmBack = false
+                    onSaved()
+                }) { Text(l(language, "不保存", "不儲存", "Don't save")) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun LaserMouseSelectionPage(
+    language: UiLanguage,
+    apps: List<XAppEntry>,
+    config: ModuleConfig,
+    updateConfig: ((ModuleConfig) -> ModuleConfig) -> Unit,
+    onSaved: () -> Unit,
+) {
+    var search by rememberSaveable { mutableStateOf("") }
+    var selected by remember(config.whitelist, config.laserMouseApps) {
+        mutableStateOf(config.laserMouseApps.intersect(config.whitelist))
+    }
+    var confirmBack by remember { mutableStateOf(false) }
+    val hasUnsavedChanges = selected != config.laserMouseApps.intersect(config.whitelist)
+    val saveChanges: () -> Unit = {
+        updateConfig { current ->
+            current.copy(laserMouseApps = selected.intersect(current.whitelist))
+        }
+        onSaved()
+    }
+    PredictiveBackHandler(enabled = hasUnsavedChanges) { events ->
+        try {
+            events.collect { }
+            confirmBack = true
+        } catch (_: CancellationException) {
+            // A cancelled predictive gesture keeps the editor open.
+        }
+    }
+    val allowlistedApps = remember(apps, config.whitelist) {
+        apps.filter { it.packageName in config.whitelist }
+    }
+    val filtered = remember(allowlistedApps, search, selected) {
+        val matches = if (search.isBlank()) allowlistedApps else allowlistedApps.filter {
+            it.label.contains(search, true) || it.packageName.contains(search, true)
+        }
+        matches.sortedWith(
+            compareByDescending<XAppEntry> { it.packageName in selected }
+                .thenBy { it.label.lowercase() },
+        )
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 22.dp, top = 22.dp, end = 22.dp, bottom = 104.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
+        ) {
+            item {
+                PageTitle(
+                    l(language, "选择手写笔鼠标范围", "選擇手寫筆滑鼠範圍", "Select stylus mouse scope"),
+                    l(
+                        language,
+                        "仅显示白名单应用，已选择 ${selected.size} 个",
+                        "僅顯示白名單應用程式，已選取 ${selected.size} 個",
+                        "Only allowlisted apps are shown · ${selected.size} selected",
+                    ),
+                )
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = { search = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    label = { Text(l(language, "搜索白名单应用", "搜尋白名單應用程式", "Search allowlisted apps")) },
+                    singleLine = true,
+                )
+                Spacer(Modifier.height(6.dp))
+            }
+            if (allowlistedApps.isEmpty()) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                    ) {
+                        Text(
+                            l(
+                                language,
+                                "白名单为空，请先返回并添加应用。",
+                                "白名單為空，請先返回並加入應用程式。",
+                                "The whitelist is empty. Go back and add an app first.",
+                            ),
+                            Modifier.padding(18.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+            items(filtered, key = XAppEntry::packageName) { app ->
+                val isSelected = app.packageName in selected
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem(
+                            fadeInSpec = tween(180),
+                            placementSpec = spring(dampingRatio = 0.82f, stiffness = 390f),
+                            fadeOutSpec = tween(120),
+                        )
+                        .clickable {
+                            selected = if (isSelected) {
+                                selected - app.packageName
+                            } else {
+                                selected + app.packageName
+                            }
+                        },
+                    shape = RoundedCornerShape(18.dp),
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer
+                    },
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 13.dp, vertical = 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.secondaryContainer,
+                            ),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                app.label.firstOrNull()?.uppercase() ?: "?",
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                                else MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(app.label, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                app.packageName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Checkbox(checked = isSelected, onCheckedChange = null)
+                    }
+                }
+            }
+        }
+        FloatingActionButton(
+            onClick = {
+                saveChanges()
+            },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
+            shape = CircleShape,
+            containerColor = Color(0xFF2E7D32),
+            contentColor = Color.White,
+        ) {
+            Text("✓", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        }
+    }
+
+    if (confirmBack) {
+        AlertDialog(
+            onDismissRequest = { confirmBack = false },
+            title = { Text(l(language, "保存名单更改？", "儲存名單變更？", "Save list changes?")) },
+            text = {
+                Text(l(language, "手写笔鼠标范围有未保存的更改，返回前是否保存？", "手寫筆滑鼠範圍有未儲存的變更，返回前是否儲存？", "The stylus mouse scope has unsaved changes. Save them before leaving?"))
+            },
+            confirmButton = {
+                Button(onClick = {
+                    confirmBack = false
+                    saveChanges()
+                }) { Text(l(language, "保存", "儲存", "Save")) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    confirmBack = false
+                    onSaved()
+                }) { Text(l(language, "不保存", "不儲存", "Don't save")) }
             },
         )
     }
@@ -1271,6 +1521,20 @@ private fun GesturesPage(
     updateConfig: ((ModuleConfig) -> ModuleConfig) -> Unit,
     onSelectApplication: (AppPickerTarget) -> Unit,
 ) {
+    var solidHex by remember(config.laserBrushColor) {
+        mutableStateOf(colorToHex(config.laserBrushColor.takeUnless {
+            it == ConfigContract.LASER_BRUSH_COLOR_SYSTEM
+        } ?: 0xFFFF3B30.toInt()))
+    }
+    var gradientHexes by remember(config.laserGradientColors) {
+        mutableStateOf(config.laserGradientColors.map(::colorToHex))
+    }
+    var flashingHexes by remember(config.laserFlashingColors) {
+        mutableStateOf(config.laserFlashingColors.map(::colorToHex))
+    }
+    var marqueeSpeedSlider by remember(config.laserMarqueeSpeedTenths) {
+        mutableFloatStateOf(config.laserMarqueeSpeedTenths / 10f)
+    }
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(22.dp),
@@ -1315,6 +1579,344 @@ private fun GesturesPage(
                     color = if (config.globalActionsEnabled) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+        }
+        item {
+            SettingSurface {
+                Text(
+                    l(language, "激光画笔颜色", "雷射畫筆顏色", "Laser brush color"),
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    l(
+                        language,
+                        "仅对白名单应用中的小米原版激光画笔生效；支持色号、彩虹、2～8 色渐变和闪烁，渐变与闪烁分别保存颜色。",
+                        "僅對白名單應用程式中的小米原版雷射畫筆生效；支援色碼、彩虹、2～8 色漸層與閃爍，漸層與閃爍會分別儲存顏色。",
+                        "Only affects Xiaomi's original laser brush in allowlisted apps. Supports hex colors, rainbow, 2–8 color gradients, and flashing, with separate colors for gradient and flashing modes.",
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                listOf(
+                    ConfigContract.LASER_COLOR_MODE_SYSTEM to l(language, "系统", "系統", "System"),
+                    ConfigContract.LASER_COLOR_MODE_SOLID to l(language, "单色", "單色", "Solid"),
+                    ConfigContract.LASER_COLOR_MODE_GRADIENT to l(language, "渐变", "漸層", "Gradient"),
+                    ConfigContract.LASER_COLOR_MODE_MARQUEE to l(language, "闪烁", "閃爍", "Flashing"),
+                ).chunked(2).forEach { modes ->
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        modes.forEach { (mode, label) ->
+                            FilterChip(
+                                selected = if (mode == ConfigContract.LASER_COLOR_MODE_GRADIENT) {
+                                    config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_GRADIENT ||
+                                        config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_RAINBOW
+                                } else {
+                                    config.laserBrushColorMode == mode
+                                },
+                                onClick = {
+                                    updateConfig { current ->
+                                        current.copy(laserBrushColorMode = mode)
+                                    }
+                                },
+                                label = { Text(label) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+                AnimatedVisibility(config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_SOLID) {
+                    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        val parsedSolid = parseHexColor(solidHex)
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedTextField(
+                                value = solidHex,
+                                onValueChange = { solidHex = it.take(7) },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(16.dp),
+                                label = { Text(l(language, "颜色色号", "顏色色碼", "Hex color")) },
+                                placeholder = { Text("#FF3B30") },
+                                singleLine = true,
+                            )
+                            RandomColorButton(language) { solidHex = randomHexColor() }
+                            RgbColorPickerButton(
+                                language = language,
+                                value = solidHex,
+                                onSelected = { solidHex = it },
+                            )
+                            Button(
+                                enabled = parsedSolid != null,
+                                onClick = {
+                                    parsedSolid?.let { color ->
+                                        updateConfig {
+                                            it.copy(
+                                                laserBrushColorMode = ConfigContract.LASER_COLOR_MODE_SOLID,
+                                                laserBrushColor = color,
+                                            )
+                                        }
+                                    }
+                                },
+                            ) { Text(l(language, "应用", "套用", "Apply")) }
+                        }
+                        laserBrushColorOptions(language).filter {
+                            it.color != ConfigContract.LASER_BRUSH_COLOR_SYSTEM
+                        }.chunked(4).forEach { options ->
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                options.forEach { option ->
+                                    FilterChip(
+                                        selected = config.laserBrushColor == option.color,
+                                        onClick = {
+                                            solidHex = colorToHex(option.color)
+                                            updateConfig {
+                                                it.copy(
+                                                    laserBrushColorMode = ConfigContract.LASER_COLOR_MODE_SOLID,
+                                                    laserBrushColor = option.color,
+                                                )
+                                            }
+                                        },
+                                        label = {
+                                            Box(
+                                                Modifier.size(15.dp).clip(CircleShape)
+                                                    .background(Color(option.color)),
+                                            )
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                                repeat(4 - options.size) { Spacer(Modifier.weight(1f)) }
+                            }
+                        }
+                    }
+                }
+                AnimatedVisibility(
+                    config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_GRADIENT ||
+                        config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_RAINBOW ||
+                        config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_MARQUEE,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        val editingFlashing =
+                            config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_MARQUEE
+                        val activeHexes = if (editingFlashing) flashingHexes else gradientHexes
+                        Text(
+                            if (config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_RAINBOW) {
+                                l(
+                                    language,
+                                    "同一条轨迹会同时呈现连续彩虹渐变。",
+                                    "同一條軌跡會同時呈現連續彩虹漸層。",
+                                    "A single stroke simultaneously shows a continuous rainbow gradient.",
+                                )
+                            } else if (config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_GRADIENT) {
+                                l(
+                                    language,
+                                    "同一条轨迹中同时显示所选颜色的循环渐变。",
+                                    "同一條軌跡中同時顯示所選顏色的循環漸層。",
+                                    "The selected colors appear together as a repeating gradient within each stroke.",
+                                )
+                            } else {
+                                l(
+                                    language,
+                                    "整条轨迹随时间在所选颜色之间平滑变化。",
+                                    "整條軌跡隨時間在所選顏色之間平滑變化。",
+                                    "The entire stroke changes smoothly between the selected colors over time.",
+                                )
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            l(language, "颜色数量", "顏色數量", "Number of colors"),
+                            fontWeight = FontWeight.Medium,
+                        )
+                        val colorChoice = if (
+                            config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_RAINBOW
+                        ) "rainbow" else activeHexes.size.toString()
+                        val colorChoices = if (editingFlashing) {
+                            (2..8).map(Int::toString)
+                        } else {
+                            listOf("rainbow") + (2..8).map(Int::toString)
+                        }
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            DropdownSelector(
+                                currentLabel = gradientChoiceLabel(language, colorChoice),
+                                values = colorChoices,
+                                label = { gradientChoiceLabel(language, it) },
+                                onSelect = { choice ->
+                                    if (choice == "rainbow") {
+                                        updateConfig {
+                                            it.copy(laserBrushColorMode = ConfigContract.LASER_COLOR_MODE_RAINBOW)
+                                        }
+                                    } else {
+                                        val count = choice.toInt().coerceIn(2, 8)
+                                        val defaults = listOf(
+                                            "#FF3B30", "#FF9500", "#FFCC00", "#34C759",
+                                            "#32ADE6", "#007AFF", "#AF52DE", "#FF2D55",
+                                        )
+                                        val resized = List(count) { index ->
+                                            activeHexes.getOrNull(index) ?: defaults[index]
+                                        }
+                                        if (editingFlashing) flashingHexes = resized
+                                        else gradientHexes = resized
+                                        updateConfig { current ->
+                                            current.copy(
+                                                laserBrushColorMode = if (editingFlashing) {
+                                                    ConfigContract.LASER_COLOR_MODE_MARQUEE
+                                                } else {
+                                                    ConfigContract.LASER_COLOR_MODE_GRADIENT
+                                                },
+                                            )
+                                        }
+                                    }
+                                },
+                            )
+                            Button(
+                                enabled = config.laserBrushColorMode != ConfigContract.LASER_COLOR_MODE_RAINBOW,
+                                onClick = {
+                                    val randomized = List(activeHexes.size.coerceIn(2, 8)) {
+                                        randomHexColor()
+                                    }
+                                    if (editingFlashing) flashingHexes = randomized
+                                    else gradientHexes = randomized
+                                },
+                            ) {
+                                Text(l(language, "一键随机", "一鍵隨機", "Randomize all"))
+                            }
+                        }
+                        if (config.laserBrushColorMode == ConfigContract.LASER_COLOR_MODE_MARQUEE) {
+                            val speedLabel = (
+                                kotlin.math.round(marqueeSpeedSlider * 10f).toInt() / 10.0
+                            ).toString()
+                            Text(
+                                l(language, "闪烁速度：$speedLabel（1.0 最慢，10.0 最快）", "閃爍速度：$speedLabel（1.0 最慢，10.0 最快）", "Flashing speed: $speedLabel (1.0 slowest, 10.0 fastest)"),
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Slider(
+                                value = marqueeSpeedSlider,
+                                onValueChange = { marqueeSpeedSlider = it },
+                                onValueChangeFinished = {
+                                    val speedTenths = kotlin.math.round(marqueeSpeedSlider * 10f)
+                                        .toInt()
+                                        .coerceIn(10, 100)
+                                    marqueeSpeedSlider = speedTenths / 10f
+                                    updateConfig {
+                                        it.copy(laserMarqueeSpeedTenths = speedTenths)
+                                    }
+                                },
+                                valueRange = 1f..10f,
+                                steps = 89,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        l(language, "随机速度", "隨機速度", "Random speed"),
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                    Text(
+                                        l(
+                                            language,
+                                            "每次变色都会在 1.0～$speedLabel 内随机速度，呈现忽快忽慢的效果。",
+                                            "每次變色都會在 1.0～$speedLabel 內隨機速度，呈現忽快忽慢的效果。",
+                                            "Each color transition randomly chooses a speed from 1.0 to $speedLabel.",
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Switch(
+                                    checked = config.laserMarqueeRandomSpeed,
+                                    onCheckedChange = { enabled ->
+                                        updateConfig {
+                                            it.copy(laserMarqueeRandomSpeed = enabled)
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                        if (config.laserBrushColorMode != ConfigContract.LASER_COLOR_MODE_RAINBOW) {
+                            activeHexes.forEachIndexed { index, value ->
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                OutlinedTextField(
+                                    value = value,
+                                    onValueChange = { changed ->
+                                        val changedHexes = activeHexes.toMutableList().also {
+                                            it[index] = changed.take(7)
+                                        }
+                                        if (editingFlashing) flashingHexes = changedHexes
+                                        else gradientHexes = changedHexes
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(16.dp),
+                                    label = {
+                                        Text(l(language, "颜色 ${index + 1}", "顏色 ${index + 1}", "Color ${index + 1}"))
+                                    },
+                                    placeholder = { Text("#RRGGBB") },
+                                    singleLine = true,
+                                )
+                                RandomColorButton(language) {
+                                    val changedHexes = activeHexes.toMutableList().also {
+                                        it[index] = randomHexColor()
+                                    }
+                                    if (editingFlashing) flashingHexes = changedHexes
+                                    else gradientHexes = changedHexes
+                                }
+                                RgbColorPickerButton(
+                                    language = language,
+                                    value = value,
+                                    onSelected = { selected ->
+                                        val changedHexes = activeHexes.toMutableList().also {
+                                            it[index] = selected
+                                        }
+                                        if (editingFlashing) flashingHexes = changedHexes
+                                        else gradientHexes = changedHexes
+                                    },
+                                )
+                            }
+                        }
+                        val parsedColors = activeHexes.map(::parseHexColor)
+                        Button(
+                            enabled = parsedColors.size in 2..8 && parsedColors.all { it != null },
+                            onClick = {
+                                if (parsedColors.all { it != null }) {
+                                    updateConfig { current ->
+                                        if (editingFlashing) {
+                                            current.copy(
+                                                laserFlashingColors = parsedColors.filterNotNull(),
+                                            )
+                                        } else {
+                                            current.copy(
+                                                laserGradientColors = parsedColors.filterNotNull(),
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(l(language, "保存颜色", "儲存顏色", "Save colors"))
+                        }
+                        }
+                    }
+                }
             }
         }
         item {
@@ -1384,6 +1986,117 @@ private fun GesturesPage(
             )
         }
         item { Spacer(Modifier.height(18.dp)) }
+    }
+}
+
+private data class LaserBrushColorOption(val color: Int, val label: String)
+
+private fun laserBrushColorOptions(language: UiLanguage): List<LaserBrushColorOption> = listOf(
+    LaserBrushColorOption(ConfigContract.LASER_BRUSH_COLOR_SYSTEM, l(language, "系统", "系統", "System")),
+    LaserBrushColorOption(0xFFFF3B30.toInt(), l(language, "红色", "紅色", "Red")),
+    LaserBrushColorOption(0xFFFF9500.toInt(), l(language, "橙色", "橙色", "Orange")),
+    LaserBrushColorOption(0xFFFFCC00.toInt(), l(language, "黄色", "黃色", "Yellow")),
+    LaserBrushColorOption(0xFF34C759.toInt(), l(language, "绿色", "綠色", "Green")),
+    LaserBrushColorOption(0xFF32ADE6.toInt(), l(language, "青色", "青色", "Cyan")),
+    LaserBrushColorOption(0xFF007AFF.toInt(), l(language, "蓝色", "藍色", "Blue")),
+    LaserBrushColorOption(0xFFAF52DE.toInt(), l(language, "紫色", "紫色", "Purple")),
+    LaserBrushColorOption(0xFFFF2D55.toInt(), l(language, "粉色", "粉色", "Pink")),
+)
+
+private fun colorToHex(color: Int): String = "#%06X".format(color and 0x00FFFFFF)
+
+private fun parseHexColor(value: String): Int? {
+    val normalized = value.trim().removePrefix("#")
+    if (normalized.length != 6) return null
+    val rgb = normalized.toIntOrNull(16) ?: return null
+    return 0xFF000000.toInt() or rgb
+}
+
+private fun randomHexColor(): String = colorToHex(
+    0xFF000000.toInt() or kotlin.random.Random.nextInt(0x1000000),
+)
+
+@Composable
+private fun RandomColorButton(language: UiLanguage, onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
+        Text(l(language, "随机", "隨機", "Random"))
+    }
+}
+
+private fun gradientChoiceLabel(language: UiLanguage, value: String): String =
+    if (value == "rainbow") {
+        l(language, "彩虹", "彩虹", "Rainbow")
+    } else {
+        l(language, "$value 色", "$value 色", "$value colors")
+    }
+
+@Composable
+private fun RgbColorPickerButton(
+    language: UiLanguage,
+    value: String,
+    onSelected: (String) -> Unit,
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    val initial = parseHexColor(value) ?: 0xFFFF3B30.toInt()
+    var red by remember(showPicker, initial) { mutableFloatStateOf(((initial shr 16) and 0xFF).toFloat()) }
+    var green by remember(showPicker, initial) { mutableFloatStateOf(((initial shr 8) and 0xFF).toFloat()) }
+    var blue by remember(showPicker, initial) { mutableFloatStateOf((initial and 0xFF).toFloat()) }
+    val preview = 0xFF000000.toInt() or
+        (red.toInt().coerceIn(0, 255) shl 16) or
+        (green.toInt().coerceIn(0, 255) shl 8) or
+        blue.toInt().coerceIn(0, 255)
+
+    TextButton(onClick = { showPicker = true }) {
+        Box(
+            Modifier.size(18.dp).clip(CircleShape).background(Color(initial)),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text("RGB")
+    }
+
+    if (showPicker) {
+        AlertDialog(
+            onDismissRequest = { showPicker = false },
+            title = { Text(l(language, "选择 RGB 颜色", "選擇 RGB 顏色", "Choose RGB color")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(preview),
+                    ) {}
+                    Text(colorToHex(preview), fontWeight = FontWeight.SemiBold)
+                    RgbChannelSlider("R", red) { red = it }
+                    RgbChannelSlider("G", green) { green = it }
+                    RgbChannelSlider("B", blue) { blue = it }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    onSelected(colorToHex(preview))
+                    showPicker = false
+                }) { Text(l(language, "确定", "確定", "Apply")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPicker = false }) {
+                    Text(l(language, "取消", "取消", "Cancel"))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun RgbChannelSlider(label: String, value: Float, onValueChange: (Float) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text("$label ${value.toInt().coerceIn(0, 255)}", Modifier.width(54.dp))
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = 0f..255f,
+            steps = 254,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
