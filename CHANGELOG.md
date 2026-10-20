@@ -7,14 +7,14 @@
 - 增加 HyperOS 3 / HyperOS 4 / 自动三种适配选择，默认依据系统版本自动识别。
 - HyperOS 4 增加 `InputManagerGlobal` 输入注入候选路径，并保留兼容回退；所有入口不可用时放行原始事件。
 - 在“其他”页的界面语言下方增加系统版本适配选择，并显示当前检测到的 Android / HyperOS 信息。
-- 已在小米 Pad 8 Pro / HyperOS 4 上确认轻捏仍发送 `F19`；HyperOS 4 注入路径尚待用户实测，不宣称已验证兼容。
+- 用户已确认在小米 Pad 8 Pro / HyperOS 4 (`OS4.0.4.0.XPYCNXM`, Android 17) 上功能可用。
 
 ### English
 
 - Added Auto, HyperOS 3, and HyperOS 4 adapter selection; Auto is the default.
 - Added an `InputManagerGlobal` injection candidate for HyperOS 4 with a compatibility fallback. Original events remain unconsumed if no injection endpoint is available.
 - Added the system profile selector below Interface language in Other settings, along with detected Android / HyperOS information.
-- Confirmed that Xiaomi Pad 8 Pro on HyperOS 4 still emits `F19` for a pinch. The HyperOS 4 injection path remains pending on-device validation and is not claimed as verified compatibility.
+- User confirmed that the feature works on Xiaomi Pad 8 Pro running HyperOS 4 (`OS4.0.4.0.XPYCNXM`, Android 17).
 
 ## 0.8.1 - 2026-08-04
 
