@@ -33,11 +33,14 @@ FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LS
 
 - 设备：小米 Pad 8 Pro
 - 型号标识：`25091RP04C`
+- HyperOS：3 / `OS3.0.307.0.WOCCNXM`（已验证）
 - Android：16 / API 36
 - 架构：`arm64-v8a`
 - 触控笔：小米焦点触控笔 Pro（VID/PID `0022:5081`）
 
 预计兼容绝大部分支持小米焦点触控笔 Pro 的 HyperOS 3 设备。
+
+HyperOS 4 / Android 17 的独立输入注入适配路径已加入，但仍待设备实测验证；遇到输入入口不可用时会保留备用路径，均不可用则交还系统处理。
 
 ### 安装
 
@@ -113,7 +116,7 @@ FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus P
 - Ordinary gestures in allowlisted apps, with a separate stylus-mouse scope selected from the allowlist.
 - A highest-priority blacklist that bypasses all hooks and preserves Xiaomi's original pen and laser-brush behavior.
 - Xiaomi's original laser brush supports custom hex colors, multicolor rainbow strokes, spatial gradients of 2–8 colors, and flashing colors in allowlisted apps, with one-tap restoration of the system color.
-- Gradient and flashing modes store separate color counts and color lists. Flashing speed ranges from 1.0 to 10.0 in 0.1 increments; with an optional random speed between 1.0 and the selected limit. Spatial gradients use fixed canvas coordinates so a new stroke does not recolor existing strokes.
+- Gradient and flashing modes store separate color counts and color lists. Flashing speed ranges from 1.0 to 10.0 in 0.1 increments, with an optional random speed between 1.0 and the selected limit. Spatial gradients use fixed canvas coordinates so a new stroke does not recolor existing strokes.
 - Stylus-mouse left click, right click, tap, hold, and actions at the current pointer position.
 - Up and down swipes can send real volume keys, compatible with most reading apps that use volume keys for page turning.
 - Mouse-wheel input for documents, PowerPoint, short-video apps, and other apps that support scrolling.

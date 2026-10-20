@@ -114,6 +114,11 @@ class ConfigStore(context: Context) {
             ConfigContract.KEY_LASER_MARQUEE_RANDOM_SPEED,
             false,
         ),
+        platformProfile = preferences.getString(
+            ConfigContract.KEY_PLATFORM_PROFILE,
+            ConfigContract.PLATFORM_AUTO,
+        )?.takeIf { it in ConfigContract.PLATFORM_PROFILES }
+            ?: ConfigContract.PLATFORM_AUTO,
         revision = preferences.getLong(ConfigContract.KEY_REVISION, 0L),
         )
     }
@@ -178,6 +183,11 @@ class ConfigStore(context: Context) {
             .putBoolean(
                 ConfigContract.KEY_LASER_MARQUEE_RANDOM_SPEED,
                 next.laserMarqueeRandomSpeed,
+            )
+            .putString(
+                ConfigContract.KEY_PLATFORM_PROFILE,
+                next.platformProfile.takeIf { it in ConfigContract.PLATFORM_PROFILES }
+                    ?: ConfigContract.PLATFORM_AUTO,
             )
             .putLong(ConfigContract.KEY_REVISION, next.revision)
             .apply()

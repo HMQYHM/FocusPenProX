@@ -1,5 +1,8 @@
 package io.github.hmqyhm.focuspenpro.hook
 
+import android.os.Build
+import io.github.hmqyhm.focuspenpro.config.ConfigContract
+
 internal object CompatProfile {
     const val TOUCH_FILM_CLASS =
         "com.miui.server.input.stylus.MiuiStylusTouchFilmManager"
@@ -15,5 +18,19 @@ internal object CompatProfile {
     const val SCAN_PINCH_F19 = 189
     const val KEY_SLIDE_UP = 196
     const val KEY_SLIDE_DOWN = 197
+
+    fun effectivePlatform(selection: String): String {
+        if (selection == ConfigContract.PLATFORM_OS3 ||
+            selection == ConfigContract.PLATFORM_OS4
+        ) return selection
+        val display = Build.DISPLAY.orEmpty()
+        return when {
+            display.contains("OS4", ignoreCase = true) || Build.VERSION.SDK_INT >= 37 ->
+                ConfigContract.PLATFORM_OS4
+            display.contains("OS3", ignoreCase = true) || Build.VERSION.SDK_INT == 36 ->
+                ConfigContract.PLATFORM_OS3
+            else -> ConfigContract.PLATFORM_AUTO
+        }
+    }
 
 }

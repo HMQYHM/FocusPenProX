@@ -22,6 +22,7 @@ data class ModuleConfig(
     val laserFlashingColors: List<Int> = ConfigContract.DEFAULT_LASER_GRADIENT_COLORS,
     val laserMarqueeSpeedTenths: Int = 30,
     val laserMarqueeRandomSpeed: Boolean = false,
+    val platformProfile: String = ConfigContract.PLATFORM_AUTO,
     val revision: Long = 0L,
 ) {
     fun appliesTo(packageName: String?): Boolean {
@@ -61,6 +62,7 @@ data class ModuleConfig(
         putIntArray(ConfigContract.KEY_LASER_FLASHING_COLORS, laserFlashingColors.toIntArray())
         putInt(ConfigContract.KEY_LASER_MARQUEE_SPEED_TENTHS, laserMarqueeSpeedTenths)
         putBoolean(ConfigContract.KEY_LASER_MARQUEE_RANDOM_SPEED, laserMarqueeRandomSpeed)
+        putString(ConfigContract.KEY_PLATFORM_PROFILE, platformProfile)
         putLong(ConfigContract.KEY_REVISION, revision)
     }
 
@@ -134,6 +136,11 @@ data class ModuleConfig(
                 ConfigContract.KEY_LASER_MARQUEE_RANDOM_SPEED,
                 false,
             ),
+            platformProfile = bundle.getString(
+                ConfigContract.KEY_PLATFORM_PROFILE,
+                ConfigContract.PLATFORM_AUTO,
+            )?.takeIf { it in ConfigContract.PLATFORM_PROFILES }
+                ?: ConfigContract.PLATFORM_AUTO,
             revision = bundle.getLong(ConfigContract.KEY_REVISION, 0L),
         )
     }

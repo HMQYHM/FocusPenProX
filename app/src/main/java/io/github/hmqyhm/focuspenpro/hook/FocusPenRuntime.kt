@@ -48,11 +48,7 @@ internal class FocusPenRuntime(
     private var vendorReplayInteractive = false
     private var vendorReplayTask: Runnable? = null
     private val reporter = RuntimeReporter(context.contentResolver, worker)
-    private val injector = InputInjector(
-        context,
-        laserController,
-        systemServerClassLoader,
-    )
+    private lateinit var injector: InputInjector
     private lateinit var config: SystemConfigClient
     private lateinit var gesture: PinchGestureMachine
     private lateinit var offLaserTapDetector: HierarchicalTapHoldDetector
@@ -70,6 +66,11 @@ internal class FocusPenRuntime(
             synchronizeCursorMode()
             reportStatus("配置已刷新")
         }
+        injector = InputInjector(
+            context,
+            laserController,
+            systemServerClassLoader,
+        ) { config.snapshot.get().platformProfile }
         gesture = PinchGestureMachine(
             scheduler = PinchGestureMachine.Scheduler { delay, block ->
                 val runnable = Runnable(block)

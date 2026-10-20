@@ -149,6 +149,16 @@ private fun l(language: UiLanguage, simplified: String, traditional: String, eng
         UiLanguage.ENGLISH -> english
     }
 
+private fun detectedPlatformLabel(language: UiLanguage): String {
+    val display = Build.DISPLAY.orEmpty()
+    val detected = when {
+        display.contains("OS4", ignoreCase = true) || Build.VERSION.SDK_INT >= 37 -> "HyperOS 4"
+        display.contains("OS3", ignoreCase = true) || Build.VERSION.SDK_INT == 36 -> "HyperOS 3"
+        else -> l(language, "未识别", "未識別", "unknown")
+    }
+    return "$detected / Android ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})"
+}
+
 @Composable
 internal fun FocusPenProXApp(activity: MainActivity) {
     val context = LocalContext.current
@@ -365,6 +375,10 @@ private fun FocusPenProXContent(activity: MainActivity) {
                             XPage.OTHER -> PageWithTips(language, tipIndex) {
                                 OtherPage(
                                     language = language,
+                                    platformProfile = config.platformProfile,
+                                    onPlatformProfile = { selected ->
+                                        updateConfig { it.copy(platformProfile = selected) }
+                                    },
                                     onLanguage = { selected ->
                                         language = selected
                                         preferences.edit().putString(KEY_LANGUAGE, selected.code).apply()
@@ -2361,6 +2375,8 @@ private fun DownChevronGlyph() {
 @Composable
 private fun OtherPage(
     language: UiLanguage,
+    platformProfile: String,
+    onPlatformProfile: (String) -> Unit,
     onLanguage: (UiLanguage) -> Unit,
     onCurrentProject: () -> Unit,
     onKeyboardProject: () -> Unit,
@@ -2395,6 +2411,37 @@ private fun OtherPage(
                                     },
                                 )
                             },
+                        )
+                    }
+                }
+            }
+        }
+        item {
+            SettingSurface {
+                Text(
+                    l(language, "系统版本适配", "系統版本適配", "System version profile"),
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    l(
+                        language,
+                        "自动识别：${detectedPlatformLabel(language)}。手动选择对应适配路径；若入口不可用会尝试备用入口，全部不可用时交还系统处理。",
+                        "自動識別：${detectedPlatformLabel(language)}。手動選擇對應適配路徑；若入口不可用會嘗試備用入口，全部不可用時交由系統處理。",
+                        "Detected: ${detectedPlatformLabel(language)}. Manual selection chooses an adapter; it tries the fallback path and fails open if neither is available.",
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        ConfigContract.PLATFORM_AUTO to l(language, "自动", "自動", "Auto"),
+                        ConfigContract.PLATFORM_OS3 to "HyperOS 3",
+                        ConfigContract.PLATFORM_OS4 to "HyperOS 4",
+                    ).forEach { (value, label) ->
+                        FilterChip(
+                            selected = platformProfile == value,
+                            onClick = { onPlatformProfile(value) },
+                            label = { Text(label) },
                         )
                     }
                 }

@@ -34,8 +34,8 @@ android {
         applicationId = "io.github.hmqyhm.focuspenpro"
         minSdk = 30
         targetSdk = 36
-        versionCode = 52
-        versionName = "0.9.0"
+        versionCode = 53
+        versionName = "0.10.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -77,7 +77,7 @@ android {
     }
 
     lint {
-        // The module intentionally targets the verified Android 16 tablet and current vendor APIs.
+        // The module has separate Android 16/HyperOS 3 and Android 17/HyperOS 4 adapters.
         disable += setOf(
             "ChromeOsAbiSupport",
             "DiscouragedPrivateApi",

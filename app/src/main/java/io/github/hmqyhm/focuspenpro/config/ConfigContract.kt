@@ -34,6 +34,11 @@ object ConfigContract {
     const val KEY_LASER_MARQUEE_SPEED_TENTHS = "laser_marquee_speed_tenths"
     const val KEY_LASER_MARQUEE_RANDOM_SPEED = "laser_marquee_random_speed"
     const val KEY_REVISION = "revision"
+    const val KEY_PLATFORM_PROFILE = "platform_profile"
+    const val PLATFORM_AUTO = "auto"
+    const val PLATFORM_OS3 = "os3"
+    const val PLATFORM_OS4 = "os4"
+    val PLATFORM_PROFILES = setOf(PLATFORM_AUTO, PLATFORM_OS3, PLATFORM_OS4)
 
     const val KEY_RUNTIME_ACTIVE = "runtime_active"
     const val KEY_RUNTIME_COMPATIBLE = "runtime_compatible"

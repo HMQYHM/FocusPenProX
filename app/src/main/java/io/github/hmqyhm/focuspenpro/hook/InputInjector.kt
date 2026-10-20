@@ -11,6 +11,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import de.robv.android.xposed.XposedHelpers
+import io.github.hmqyhm.focuspenpro.config.ConfigContract
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicReference
 
@@ -19,30 +20,21 @@ internal class InputInjector(
     private val context: Context,
     private val laserController: AtomicReference<Any?>,
     private val systemServerClassLoader: ClassLoader,
+    private val platformSelection: () -> String,
 ) {
-    private val inputManager: Any?
-    private val injectMethod: Method?
+    private val os3Endpoint: InjectionEndpoint?
+    private val os4Endpoint: InjectionEndpoint?
     private val inputManagerInternal: Any?
     private val getCursorPositionMethod: Method?
     private var lastValidPosition: PointF? = null
     private var mouseButtonSession: MouseButtonSession? = null
+    private var endpointResolutionError: String? = null
 
     init {
-        var manager: Any? = null
-        var method: Method? = null
+        os3Endpoint = resolveInjectionEndpoint("android.hardware.input.InputManager")
+        os4Endpoint = resolveInjectionEndpoint("android.hardware.input.InputManagerGlobal")
         var internal: Any? = null
         var cursorMethod: Method? = null
-        runCatching {
-            val clazz = Class.forName("android.hardware.input.InputManager")
-            manager = clazz.getDeclaredMethod("getInstance").apply {
-                isAccessible = true
-            }.invoke(null)
-            method = clazz.getDeclaredMethod(
-                "injectInputEvent",
-                android.view.InputEvent::class.java,
-                Int::class.javaPrimitiveType,
-            ).apply { isAccessible = true }
-        }
         runCatching {
             val localServices = Class.forName(
                 "com.android.server.LocalServices",
@@ -63,17 +55,19 @@ internal class InputInjector(
                 Int::class.javaPrimitiveType,
             ).apply { isAccessible = true }
         }
-        inputManager = manager
-        injectMethod = method
         inputManagerInternal = internal
         getCursorPositionMethod = cursorMethod
     }
 
-    fun canInjectKey(): Boolean = inputManager != null && injectMethod != null
+    fun canInjectKey(): Boolean = selectedEndpoint() != null
 
-    fun capabilitySummary(): String =
-        "inputManager=${inputManager != null}, inject=${injectMethod != null}, " +
-            "internal=${inputManagerInternal != null}, cursor=${getCursorPositionMethod != null}"
+    fun capabilitySummary(): String {
+        val selected = CompatProfile.effectivePlatform(platformSelection())
+        val endpoint = selectedEndpoint()
+        return "profile=$selected, inject=${endpoint?.className ?: "unavailable"}, " +
+            "internal=${inputManagerInternal != null}, cursor=${getCursorPositionMethod != null}" +
+            (endpointResolutionError?.let { ", reason=$it" } ?: "")
+    }
 
     fun canInjectMouse(preferSystemCursor: Boolean): Boolean =
         currentPosition(preferSystemCursor) != null && canInjectKey()
@@ -353,10 +347,47 @@ internal class InputInjector(
         }
     }
 
-    private fun inject(event: android.view.InputEvent): Boolean =
+    private fun selectedEndpoint(): InjectionEndpoint? = when (
+        CompatProfile.effectivePlatform(platformSelection())
+    ) {
+        ConfigContract.PLATFORM_OS3 -> os3Endpoint ?: os4Endpoint
+        ConfigContract.PLATFORM_OS4 -> os4Endpoint ?: os3Endpoint
+        else -> os4Endpoint ?: os3Endpoint
+    }
+
+    private fun inject(event: android.view.InputEvent): Boolean = runCatching {
+        val endpoint = selectedEndpoint() ?: return false
+        endpoint.method.invoke(
+            endpoint.instance,
+            event,
+            INJECT_INPUT_EVENT_MODE_ASYNC,
+        ) as? Boolean
+    }.getOrNull() == true
+
+    private fun resolveInjectionEndpoint(className: String): InjectionEndpoint? =
         runCatching {
-            injectMethod?.invoke(inputManager, event, INJECT_INPUT_EVENT_MODE_ASYNC) as? Boolean
-        }.getOrNull() == true
+            val clazz = Class.forName(className, false, systemServerClassLoader)
+            val instance = clazz.getDeclaredMethod("getInstance").apply {
+                isAccessible = true
+            }.invoke(null) ?: error("${clazz.simpleName}.getInstance() returned null")
+            val method = clazz.getDeclaredMethod(
+                "injectInputEvent",
+                android.view.InputEvent::class.java,
+                Int::class.javaPrimitiveType,
+            ).apply { isAccessible = true }
+            InjectionEndpoint(clazz.name, instance, method)
+        }.onFailure { error ->
+            endpointResolutionError = listOfNotNull(
+                endpointResolutionError,
+                "$className: ${error.cause?.javaClass?.simpleName ?: error.javaClass.simpleName}",
+            ).joinToString("; ")
+        }.getOrNull()
+
+    private data class InjectionEndpoint(
+        val className: String,
+        val instance: Any,
+        val method: Method,
+    )
 
     private fun injectMouseButtonReleaseEvents(session: MouseButtonSession): Boolean {
         val now = SystemClock.uptimeMillis().coerceAtLeast(session.downTime + 2)
