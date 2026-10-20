@@ -35,12 +35,13 @@ FocusPen Pro X 是面向已 Root 小米平板和小米焦点触控笔 Pro 的 LS
 - 型号标识：`25091RP04C`
 - HyperOS：3 / `OS3.0.307.0.WOCCNXM`（已验证）
 - Android：16 / API 36
+- HyperOS 4：4 / `OS4.0.4.0.XPYCNXM`，Android 17 / API 37（已由用户在小米 Pad 8 Pro 确认功能可用）
 - 架构：`arm64-v8a`
 - 触控笔：小米焦点触控笔 Pro（VID/PID `0022:5081`）
 
-预计兼容绝大部分支持小米焦点触控笔 Pro 的 HyperOS 3 设备。
+HyperOS 3：预计兼容绝大部分支持小米焦点触控笔 Pro 的设备。
 
-HyperOS 4 / Android 17 的独立输入注入适配路径已加入，但仍待设备实测验证；遇到输入入口不可用时会保留备用路径，均不可用则交还系统处理。
+HyperOS 4 / Android 17：已加入独立适配路径，并提供自动识别与手动切换。已在小米 Pad 8 Pro / `OS4.0.4.0.XPYCNXM` 上确认可用。其他设备与系统版本仍需分别验证；若输入入口不可用，模块会交还系统处理。
 
 ### 安装
 
@@ -130,10 +131,13 @@ FocusPen Pro X is an LSPosed module for rooted Xiaomi tablets and Xiaomi Focus P
 - Device: Xiaomi Pad 8 Pro
 - Model identifier: `25091RP04C`
 - Android: 16 / API 36
+- HyperOS 4: `OS4.0.4.0.XPYCNXM`, Android 17 / API 37 (user-confirmed working on Xiaomi Pad 8 Pro)
 - Architecture: `arm64-v8a`
 - Stylus: Xiaomi Focus Pen Pro (VID/PID `0022:5081`)
 
-Expected to be compatible with most HyperOS 3 devices that support Xiaomi Focus Pen Pro.
+HyperOS 3: expected to work on most devices that support Xiaomi Focus Pen Pro.
+
+HyperOS 4 / Android 17: a separate adapter with automatic detection and manual switching is included. It is confirmed working by the user on Xiaomi Pad 8 Pro running `OS4.0.4.0.XPYCNXM`. Other devices and system builds still require separate validation. If an input endpoint is unavailable, the module fails open and leaves input to the system.
 
 ### Installation
 
