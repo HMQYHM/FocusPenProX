@@ -2,6 +2,7 @@ package io.github.hmqyhm.focuspenpro.ui
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -67,6 +68,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -117,6 +119,7 @@ private const val CURRENT_PROJECT_URL = "https://github.com/HMQYHM/FocusPenProX"
 private const val KEY_LANGUAGE = "language"
 private const val KEY_LAUNCH_COUNT = "launch_count"
 private const val KEY_STAR_COMPLETED = "star_completed"
+private const val KEY_SHOW_ALL_APPS = "show_all_apps"
 private const val TIP_COUNT = 18
 
 private enum class UiLanguage(val code: String) {
@@ -131,7 +134,12 @@ private enum class XPage { HOME, SCOPE, GESTURES, OTHER, WHITELIST, LASER_MOUSE,
 
 private enum class AppPickerTarget { FOUR_TAP, FOUR_HOLD }
 
-private data class XAppEntry(val label: String, val packageName: String)
+private data class XAppEntry(
+    val label: String,
+    val packageName: String,
+    val hasLauncher: Boolean,
+    val autoExpandOnSelection: Boolean,
+)
 
 private data class XRuntime(
     val active: Boolean = false,
@@ -1041,6 +1049,17 @@ private fun AppSelectionPage(
     onSaved: () -> Unit,
 ) {
     var search by rememberSaveable { mutableStateOf("") }
+    val appContext = LocalContext.current
+    val uiPreferences = remember(appContext) {
+        appContext.getSharedPreferences(UI_PREFS, Context.MODE_PRIVATE)
+    }
+    var showAllApps by rememberSaveable {
+        mutableStateOf(uiPreferences.getBoolean(KEY_SHOW_ALL_APPS, false))
+    }
+    val setShowAllApps: (Boolean) -> Unit = { show ->
+        showAllApps = show
+        uiPreferences.edit().putBoolean(KEY_SHOW_ALL_APPS, show).apply()
+    }
     var selected by remember(whitelist, config.whitelist, config.blacklist) {
         mutableStateOf(if (whitelist) config.whitelist else config.blacklist)
     }
@@ -1082,8 +1101,9 @@ private fun AppSelectionPage(
             // A cancelled predictive gesture keeps the editor open.
         }
     }
-    val filtered = remember(apps, search, selected, opposite) {
-        val matches = if (search.isBlank()) apps else apps.filter {
+    val filtered = remember(apps, search, selected, opposite, showAllApps) {
+        val visibleApps = if (showAllApps) apps else apps.filter(XAppEntry::hasLauncher)
+        val matches = if (search.isBlank()) visibleApps else visibleApps.filter {
             it.label.contains(search, true) || it.packageName.contains(search, true)
         }
         matches.sortedWith(
@@ -1112,14 +1132,34 @@ private fun AppSelectionPage(
                         l(language, "已选择 ${selected.size} 个应用使用原版逻辑", "已選取 ${selected.size} 個應用程式使用原版邏輯", "${selected.size} apps keep original behavior")
                     },
                 )
-                OutlinedTextField(
-                    value = search,
-                    onValueChange = { search = it },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    label = { Text(l(language, "搜索应用或包名", "搜尋應用程式或套件名稱", "Search apps or package")) },
-                    singleLine = true,
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = search,
+                        onValueChange = { search = it },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(18.dp),
+                        label = { Text(l(language, "搜索应用或包名", "搜尋應用程式或套件名稱", "Search apps or package")) },
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    OutlinedButton(
+                        onClick = { setShowAllApps(!showAllApps) },
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                    ) {
+                        Text(
+                            if (showAllApps) {
+                                l(language, "仅启动器", "僅啟動器", "Launchers")
+                            } else {
+                                l(language, "显示所有应用", "顯示所有應用程式", "All apps")
+                            },
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
                 Spacer(Modifier.height(6.dp))
             }
             items(filtered, key = XAppEntry::packageName) { app ->
@@ -1138,7 +1178,10 @@ private fun AppSelectionPage(
                             when {
                                 isOpposite -> pendingTransfer = app
                                 isSelected -> selected = selected - app.packageName
-                                else -> selected = selected + app.packageName
+                                else -> {
+                                    selected = selected + app.packageName
+                                    if (app.autoExpandOnSelection) setShowAllApps(true)
+                                }
                             }
                         },
                     shape = RoundedCornerShape(18.dp),
@@ -1217,6 +1260,7 @@ private fun AppSelectionPage(
                 Button(onClick = {
                     selected = selected + app.packageName
                     opposite = opposite - app.packageName
+                    if (app.autoExpandOnSelection) setShowAllApps(true)
                     pendingTransfer = null
                 }) { Text(l(language, "是", "是", "Yes")) }
             },
@@ -2649,13 +2693,22 @@ private fun actionLabel(language: UiLanguage, action: String): String = when (ac
 }
 
 private fun loadXApps(activity: MainActivity): List<XAppEntry> {
+    val packageManager = activity.packageManager
     val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-    return activity.packageManager.queryIntentActivities(launcherIntent, 0)
-        .map { info ->
-            XAppEntry(
-                label = info.loadLabel(activity.packageManager).toString(),
-                packageName = info.activityInfo.packageName,
-            )
+    val launcherPackages = packageManager.queryIntentActivities(launcherIntent, 0)
+        .mapTo(mutableSetOf()) { it.activityInfo.packageName }
+    return packageManager.getInstalledApplications(0)
+        .mapNotNull { info ->
+            runCatching {
+                XAppEntry(
+                    label = info.loadLabel(packageManager).toString().ifBlank { info.packageName },
+                    packageName = info.packageName,
+                    hasLauncher = info.packageName in launcherPackages,
+                    // Factory-preinstalled system apps do not auto-expand the list.
+                    autoExpandOnSelection =
+                        info.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0,
+                )
+            }.getOrNull()
         }
         .distinctBy(XAppEntry::packageName)
         .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, XAppEntry::label))

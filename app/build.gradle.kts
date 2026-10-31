@@ -34,8 +34,8 @@ android {
         applicationId = "io.github.hmqyhm.focuspenpro"
         minSdk = 30
         targetSdk = 36
-        versionCode = 53
-        versionName = "0.10.1"
+        versionCode = 54
+        versionName = "0.11.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {

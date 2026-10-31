@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.11.0 - 2026-10-31
+
+### 中文
+
+- 白名单和黑名单搜索框旁增加“显示所有应用”切换，可显示没有桌面图标的已安装应用。
+- “显示所有应用”状态会跨白名单、黑名单和应用重启保留；手动点击“仅启动器”后才关闭。
+- 选择非出厂预装的系统应用（系统应用更新包）时自动开启“显示所有应用”；出厂预装应用不会触发自动开启。
+- 更新中英文项目说明，明确 HyperOS 3 / HyperOS 4 适配及已验证设备范围。
+
+### English
+
+- Added a “Show all apps” toggle beside search in both allowlist and blacklist, including installed apps without launcher icons.
+- The setting persists across both lists and app restarts; it turns off only when “Launchers” is tapped.
+- Selecting an updated system app automatically enables the full-app list; factory-preinstalled apps do not trigger it.
+- Updated bilingual project documentation with HyperOS 3/4 adapter support and verified-device scope.
+
 ## 0.10.1 - 2026-10-20
 
 ### 中文

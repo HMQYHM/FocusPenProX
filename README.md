@@ -26,6 +26,7 @@ FocusPen Pro X 为小米焦点触控笔 Pro 增加可配置笔势、手写笔鼠
 ### 功能
 
 - 白名单应用手势增强；黑名单优先级最高，名单内应用完全绕过模块 Hook，保留小米原始行为。
+- 白名单和黑名单可切换显示所有已安装应用，包括没有桌面图标的应用；选择非出厂预装的系统应用更新包会自动展开完整列表，状态会持续保留，直至手动切回“仅启动器”。
 - 独立选择手写笔鼠标生效应用；支持鼠标指针位置的左键、右键、单击和按住操作。
 - 轻捏两次、轻捏四次及按住手势可配置动作，包括开启虚拟激光或手写笔鼠标、启动应用和系统导航操作。
 - 笔身上下滑可发送真实音量键，适用于使用音量键翻页的阅读应用。
@@ -75,6 +76,7 @@ FocusPen Pro X 为小米焦点触控笔 Pro 增加可配置笔势、手写笔鼠
 ### Features
 
 - Gesture enhancement in allowlisted apps. The blacklist has highest priority and completely bypasses module hooks to preserve Xiaomi's original behavior.
+- Both app lists can show every installed app, including those without launcher icons. Selecting an updated system app expands the list and keeps it expanded until “Launchers” is tapped; factory-preinstalled apps do not trigger expansion.
 - A separately configurable stylus-mouse app scope, with pointer-position left/right clicks and press-and-hold actions.
 - Configurable double-pinch, four-pinch, and hold gestures for actions such as enabling the virtual laser or stylus mouse, launching an app, or system navigation.
 - Up/down pen gestures can send real volume keys for reading apps that use volume keys to turn pages.
