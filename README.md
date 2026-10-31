@@ -20,7 +20,7 @@ FocusPen Pro X 为小米焦点触控笔 Pro 增加可配置笔势、手写笔鼠
 - 支持 HyperOS 3 和 HyperOS 4 两套适配路径，可自动识别，也可在“其他设置”中手动选择。
 - 已验证设备：小米 Pad 8 Pro（型号 `25091RP04C`），小米焦点触控笔 Pro，`arm64-v8a`。
 - HyperOS 3 验证版本：`OS3.0.307.0.WOCCNXM`（Android 16 / API 36）。
-- HyperOS 4 验证版本：`OS4.0.4.0.XPYCNXM`（Android 17 / API 37）；用户已确认 0.10.1 功能可用。
+- HyperOS 4 验证版本：`OS4.0.4.0.XPYCNXM`（Android 17 / API 37）；用户已确认 0.11.0 功能可用。
 - 其他支持该触控笔的平板及系统构建尚未逐一验证，不能据此保证所有设备完全兼容。
 
 ### 功能
@@ -70,7 +70,7 @@ FocusPen Pro X 为小米焦点触控笔 Pro 增加可配置笔势、手写笔鼠
 - Includes separate HyperOS 3 and HyperOS 4 adapters, with automatic detection and a manual selector under Other settings.
 - Verified device: Xiaomi Pad 8 Pro (model `25091RP04C`) with Xiaomi Focus Pen Pro, `arm64-v8a`.
 - HyperOS 3 verified build: `OS3.0.307.0.WOCCNXM` (Android 16 / API 36).
-- HyperOS 4 verified build: `OS4.0.4.0.XPYCNXM` (Android 17 / API 37); the user confirmed version 0.10.1 working.
+- HyperOS 4 verified build: `OS4.0.4.0.XPYCNXM` (Android 17 / API 37); the user confirmed version 0.11.0 working.
 - Other compatible tablets and ROM builds have not all been tested; compatibility on every device is not guaranteed.
 
 ### Features
